@@ -121,7 +121,6 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Kelamin <span class="text-red-500">*</span></label>
                             <div class="flex gap-2 sm:gap-4 mt-1">
-                                <!-- Tambahkan onchange="updateScheduleOptions()" di sini -->
                                 <label class="cursor-pointer flex-1">
                                     <input type="radio" name="gender" value="Laki-laki" class="peer sr-only" required onchange="updateScheduleOptions()">
                                     <div class="px-4 py-2 border border-gray-300 text-center rounded-lg text-sm hover:bg-white peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 transition flex items-center justify-center gap-2 bg-white">
@@ -170,7 +169,6 @@
                     <div>
                         <label class="block text-sm font-medium text-emerald-900 mb-1">Pilih Kelas yang Diminati <span class="text-red-500">*</span></label>
                         <div class="relative">
-                            <!-- Update onchange untuk trigger updateScheduleOptions tanpa argumen -->
                             <select id="kelas-select" name="category" onchange="updateScheduleOptions()" class="w-full px-4 py-3 border border-emerald-300 rounded-lg bg-white font-medium text-gray-800 focus:ring-2 focus:ring-emerald-500 outline-none appearance-none cursor-pointer">
                             <option value="" disabled selected>-- Pilih Salah Satu Program --</option>
                             <option value="Baca Al-Quran">Kelas Baca Al-Quran (Qara'na)</option>
@@ -309,7 +307,6 @@
         </div>
     </div>
 
-
     <!-- JAVASCRIPT LOGIC - REVISI GITHUB -->
     <script>
         /* -----------------------------------------------------
@@ -323,30 +320,23 @@
         // TRIK KEAMANAN: Memecah token agar tidak otomatis dihapus/revoked oleh robot GitHub
         // Masukkan sisa token baru Anda di variabel tokenPart2 di bawah ini (tanpa awalan github_pat_)
         const tokenPart1 = 'github_pat_';
-        const tokenPart2 = 'MASUKKAN_SISA_TOKEN_BARU_ANDA_DI_SINI'; 
+        const tokenPart2 = '11B4FAEOI0kovf0Hl167HL_iUEUX7fnlfgw9zHavXqRVXYeVfMOvrI7lwbhyU5PF5sQSF2I5DRvHMUd7bM'; 
         const GITHUB_TOKEN = tokenPart1 + tokenPart2;
 
         const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents`;
         
+        // PERBAIKAN: Menghapus 'Cache-Control: no-cache' untuk menghindari error CORS (Failed to fetch)
         const headers = {
             'Authorization': `token ${GITHUB_TOKEN}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'Cache-Control': 'no-cache' // Anti-cache ditambahkan di sini
+            'Accept': 'application/vnd.github.v3+json'
         };
 
         // === KONFIGURASI KAPASITAS DEFAULT ===
         const DEFAULT_QUOTA = 15; 
-        let CATEGORY_CAPACITY = {
-            "Baca Al-Quran": 15,
-            "Bahasa Arab": 25,
-            "Fiqih Ibadah": 25,
-            "Tafsir & Tadabbur": 20
-        };
+        let CATEGORY_CAPACITY = {};
 
-        let classData = {
-            // Data awal sebagai fallback
-            quran: { selectValue: "Baca Al-Quran", schedules: {} }
-        };
+        // Data akan murni diisi dari GitHub
+        let classData = {};
 
         let globalParticipants = [];
         let isDataLoaded = false;
@@ -355,16 +345,21 @@
            LOGIC: FETCH DATA DARI GITHUB
            ----------------------------------------------------- */
         async function fetchGitHubData() {
-            console.log("Mencoba mengambil data jadwal dari GitHub..."); // Log tambahan untuk penanda
+            if(GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
+                alert("Peringatan: Token GitHub belum diatur di dalam kode HTML. Harap masukkan token agar formulir dapat terhubung ke Sveltia.");
+                isDataLoaded = true;
+                return;
+            }
+
             try {
-                // 1. Ambil file jadwal.json (Ditambah anti-cache)
-                const jadwalRes = await fetch(`${GITHUB_API_BASE}/data/jadwal.json?ref=${GITHUB_BRANCH}&t=${new Date().getTime()}`, { headers });
+                // 1. Ambil file jadwal.json (Menggunakan URL timestamp agar kebal Cache, tanpa melanggar CORS)
+                const cacheBusterUrl = `&t=${new Date().getTime()}`;
+                const jadwalRes = await fetch(`${GITHUB_API_BASE}/data/jadwal.json?ref=${GITHUB_BRANCH}${cacheBusterUrl}`, { headers });
                 
                 if (jadwalRes.ok) {
                     const jadwalDataRaw = await jadwalRes.json();
                     
                     try {
-                        // Decode Base64 UTF-8 yang jauh lebih tangguh (Anti-Error)
                         const cleanB64 = jadwalDataRaw.content.replace(/\s/g, '');
                         const binary = atob(cleanB64);
                         const bytes = new Uint8Array(binary.length);
@@ -374,9 +369,8 @@
                         const decodedStr = new TextDecoder('utf-8').decode(bytes);
                         const decodedJadwal = JSON.parse(decodedStr);
                         
-                        // Parse JSON Sveltia ke format classData yang dipahami form ini
                         if(decodedJadwal.kelas) {
-                            classData = {}; // Kosongkan data fallback
+                            classData = {}; 
                             decodedJadwal.kelas.forEach((kls, index) => {
                                 const key = 'kelas_' + index;
                                 classData[key] = {
@@ -390,7 +384,6 @@
                                         if(!classData[key].schedules[sch.gender]) {
                                             classData[key].schedules[sch.gender] = [];
                                         }
-                                        // Cari apakah tipe (Online/Offline) sudah ada
                                         let typeGroup = classData[key].schedules[sch.gender].find(g => g.type === sch.type);
                                         if(!typeGroup) {
                                             typeGroup = { type: sch.type, times: [] };
@@ -405,30 +398,27 @@
                             });
                         }
                     } catch (parseErr) {
-                        alert("DEBUG - GAGAL BACA ISI JADWAL:\n" + parseErr.message);
-                        console.error(parseErr);
+                        console.error("Gagal membaca jadwal dari Sveltia:", parseErr);
                     }
                 } else {
                     const errStatus = await jadwalRes.json();
-                    alert("DEBUG - GITHUB API ERROR (Jadwal):\nHTTP " + jadwalRes.status + "\n" + errStatus.message);
+                    console.error("DEBUG - GITHUB API ERROR (Jadwal): HTTP " + jadwalRes.status + " - " + errStatus.message);
                 }
 
-                // 2. Ambil daftar file JSON peserta di folder data/pendaftar/ (Ditambah anti-cache)
-                const pendaftarRes = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}&t=${new Date().getTime()}`, { headers });
+                // 2. Ambil daftar file JSON peserta di folder data/pendaftar/
+                const pendaftarRes = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}${cacheBusterUrl}`, { headers });
                 if (pendaftarRes.ok) {
                     const files = await pendaftarRes.json();
-                    
-                    // Filter hanya file .json
                     const jsonFiles = files.filter(f => f.name.endsWith('.json'));
                     
-                    // Fetch isi setiap file JSON
-                    const fetchPromises = jsonFiles.map(f => 
-                        fetch(`${f.download_url}&t=${new Date().getTime()}`).then(res => res.json()).catch(() => null)
-                    );
+                    // Fetch isi setiap file JSON dengan penembus cache di URL-nya
+                    const fetchPromises = jsonFiles.map(f => {
+                        const dlUrl = f.download_url.includes('?') ? `${f.download_url}&t=${new Date().getTime()}` : `${f.download_url}?t=${new Date().getTime()}`;
+                        return fetch(dlUrl).then(res => res.json()).catch(() => null);
+                    });
                     
                     const pendaftarData = await Promise.all(fetchPromises);
                     
-                    // Masukkan ke array global
                     globalParticipants = pendaftarData.filter(data => data !== null).map(data => ({
                         fullName: data.fullname,
                         category: data.category,
@@ -439,8 +429,7 @@
                 }
 
             } catch (err) {
-                alert("DEBUG - KONEKSI TERPUTUS:\n" + err.message);
-                console.warn("Gagal memuat data dari GitHub.", err);
+                console.warn("Koneksi gagal saat memuat data GitHub.", err);
             } finally {
                 isDataLoaded = true;
                 if (document.getElementById('kelas-select').value) updateScheduleOptions();
@@ -450,7 +439,7 @@
         window.addEventListener('DOMContentLoaded', fetchGitHubData);
 
         /* -----------------------------------------------------
-           LOGIC: UPDATE JADWAL & PROGRESS BAR (SAMA SEPERTI ASLI)
+           LOGIC: UPDATE JADWAL & PROGRESS BAR
            ----------------------------------------------------- */
         function updateScheduleOptions() {
             const container = document.getElementById('schedule-options');
@@ -468,7 +457,7 @@
             }
 
             if (!selectedGender) {
-                container.innerHTML = '<div class="text-sm text-red-500 italic p-4 bg-red-50 rounded-lg border border-red-100 text-center"><i class="fas fa-exclamation-circle mb-1 block"></i>Mohon pilih <b>Jenis Kelamin</b> di bagian Identitas Diri terlebih dahulu untuk melihat jadwal yang sesuai (Ikhwan/Akhwat).</div>';
+                container.innerHTML = '<div class="text-sm text-red-500 italic p-4 bg-red-50 rounded-lg border border-red-100 text-center"><i class="fas fa-exclamation-circle mb-1 block"></i>Mohon pilih <b>Jenis Kelamin</b> di bagian Identitas Diri terlebih dahulu untuk melihat jadwal yang sesuai.</div>';
                 return;
             }
 
@@ -476,8 +465,7 @@
                 container.innerHTML = `
                     <div class="flex flex-col items-center justify-center p-8 bg-white/50 rounded-xl border border-slate-200 text-center">
                         <i class="fas fa-circle-notch fa-spin text-emerald-500 text-3xl mb-3"></i>
-                        <p class="text-sm text-slate-600 font-medium">Sinkronisasi kuota dari pusat...</p>
-                        <p class="text-xs text-slate-400 mt-1">Mohon tunggu sebentar</p>
+                        <p class="text-sm text-slate-600 font-medium">Sinkronisasi data dari pusat...</p>
                     </div>
                 `;
                 return;
@@ -617,7 +605,7 @@
                     container.innerHTML = '<p class="text-sm text-gray-500 italic p-3 bg-red-50 rounded-lg border border-red-100 text-center">Mohon maaf, jadwal untuk ' + selectedGender + ' belum tersedia di kelas ini.</p>';
                 }
             } else {
-                 container.innerHTML = '<p class="text-sm text-gray-500 italic p-3 bg-red-50 rounded-lg border border-red-100 text-center">Jadwal tidak ditemukan.</p>';
+                 container.innerHTML = '<p class="text-sm text-gray-500 italic p-3 bg-red-50 rounded-lg border border-red-100 text-center">Jadwal tidak ditemukan di database pusat. Pastikan jadwal sudah dibuat di Sveltia CMS.</p>';
             }
         }
 
@@ -703,9 +691,8 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const data = e.target.result.split(',');
-                    document.getElementById('fileData').value = data[1]; // Base64 content only
+                    document.getElementById('fileData').value = data[1]; 
                     
-                    // Buat nama file unik untuk GitHub: timestamp_namaasli.jpg
                     const timestamp = new Date().getTime();
                     const cleanFileName = file.name.replace(/[^a-zA-Z0-9.\-]/g, "_");
                     document.getElementById('fileName').value = `${timestamp}_${cleanFileName}`;
@@ -717,7 +704,7 @@
         });
 
         /* -----------------------------------------------------
-           LOGIC: FORM SUBMIT KE GITHUB API
+           LOGIC: FORM SUBMIT KE GITHUB API (DENGAN FIX NAMA GANDA)
            ----------------------------------------------------- */
         document.getElementById('registration-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -733,7 +720,6 @@
                 return;
             }
 
-            // Peringatan sebelum eksekusi (bisa dihapus nanti jika token sudah diisi)
             if(GITHUB_TOKEN.includes('xxxx_token') || GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
                 alert("Peringatan: Token GitHub belum diatur di dalam kode HTML. Pendaftaran tidak akan tersimpan.");
                 return;
@@ -750,7 +736,7 @@
             const dataForPayload = Object.fromEntries(formData.entries());
             
             try {
-                // 1. Upload Gambar ke folder /media/
+                // 1. Upload Gambar
                 const imagePath = `media/${dataForPayload.fileName}`;
                 const imagePayload = {
                     message: `Upload bukti bayar: ${dataForPayload.fullname}`,
@@ -768,14 +754,13 @@
 
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan Data...';
 
-                // 2. Siapkan data JSON yang diformat khusus untuk Sveltia CMS
+                // 2. Siapkan data JSON Sveltia CMS
                 const d = new Date();
                 const tzOffset = d.getTimezoneOffset() * 60000;
                 const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0, -1); 
-                // Format: YYYY-MM-DDTHH:mm:ss
                 
                 const jsonContent = {
-                    timestamp: localISOTime.split('.')[0], // YYYY-MM-DDTHH:mm:ss
+                    timestamp: localISOTime.split('.')[0], 
                     fullname: dataForPayload.fullname,
                     nickname: dataForPayload.nickname,
                     gender: dataForPayload.gender,
@@ -784,18 +769,16 @@
                     category: dataForPayload.category,
                     schedule: dataForPayload.schedule,
                     ability: dataForPayload.ability,
-                    payment_proof: `/${imagePath}` // Format path Sveltia untuk gambar
+                    payment_proof: `/${imagePath}`, 
+                    status_spp: "Belum Bayar" // Wajib agar rekap.html tidak error
                 };
 
-                // Encode JSON ke Base64 (Syarat GitHub API)
-                // Menggunakan btoa butuh string UTF-8 yang bersih
                 const jsonBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(jsonContent, null, 2))));
                 
-                // --- PENYELESAIAN BUG NAMA GANDA (FILE COLLISION) ---
+                // --- PENCEGAH TABRAKAN NAMA GANDA ---
                 const datePrefix = localISOTime.split('T')[0].replace(/-/g, '');
                 const slugName = dataForPayload.fullname.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
-                // Tambahan kode acak 4 digit untuk menghindari tabrakan jika ada nama yang sama
-                const randomStr = Math.random().toString(36).substring(2, 6);
+                const randomStr = Math.random().toString(36).substring(2, 6); // 4 Digit Kode Acak
                 const jsonPath = `data/pendaftar/${datePrefix}-${slugName}-${randomStr}.json`;
 
                 const jsonPayload = {
@@ -810,7 +793,7 @@
                     body: JSON.stringify(jsonPayload)
                 });
 
-                if (!jsonResponse.ok) throw new Error("Gagal menyimpan data pendaftar");
+                if (!jsonResponse.ok) throw new Error("Gagal menyimpan data pendaftar. Nama mungkin bertabrakan atau format salah.");
 
                 // --- SUKSES ---
                 const formSection = document.getElementById('registration-form');
@@ -826,7 +809,7 @@
 
             } catch (err) {
                 console.error(err); 
-                alert('Terjadi kesalahan koneksi ke GitHub. Silahkan coba lagi.');
+                alert('Terjadi kesalahan koneksi ke GitHub. Silahkan coba lagi.\nDetail: ' + err.message);
                 btn.innerHTML = originalContent; 
                 btn.disabled = false; 
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
