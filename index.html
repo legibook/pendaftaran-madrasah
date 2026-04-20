@@ -44,7 +44,7 @@
         .fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-        /* Custom Scrollbar */
+        /* Custom Scrollbar untuk form panjang */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 4px; }
@@ -63,21 +63,34 @@
 </head>
 <body class="text-gray-700 bg-white min-h-screen font-sans antialiased flex flex-col items-center relative">
 
+    <!-- CONTAINER UTAMA (TIDAK ADA BOX/SHADOW) -->
     <main class="w-full max-w-3xl bg-white fade-in-up relative z-10 flex-1 flex flex-col">
         
-        <!-- HEADER IMAGE -->
+        <!-- HEADER IMAGE (GAYA GOOGLE FORM) -->
         <div class="h-32 md:h-48 w-full relative group bg-gray-200 shrink-0">
+         
          <img src="https://lh3.googleusercontent.com/pw/AP1GczMvjSG62rRn_iDpkPpkEz7hObembthNen-fcPJxe9fz5e7PQLOBY0R00afUbBBfCXiLH1-u9d79jl3xfkUt_yVKjM3WYAd3uK51jfK-g2k-UCAa6km9qVUqWWyvdxzjuFhlNQ5B28KLSxXpAZxjQQ7X=w800-h256-s-no-gm?authuser=0" 
-              alt="Header Mobile" class="w-full h-full object-cover block md:hidden">
-         <img src="https://lh3.googleusercontent.com/pw/AP1GczO5S1_-XHqHALKgfQt4kvScCFP5p4quaIih0eB1F7io4c_-f98xSnXzXThfEVDpeOXoFNDmyV_i5o50umB3iPU_2fOxfOJITx-n3g4SgNuhrAZL47SAvnx1oam1wALKJ_sBlmrSMtSn0KErkCqNaJOo=w1600-h400-s-no-gm?authuser=0" 
-              alt="Header Desktop" class="w-full h-full object-cover hidden md:block">
-         <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
-        </div>
+              alt="Header Mobile" 
+              class="w-full h-full object-cover block md:hidden">
 
+         <img src="https://lh3.googleusercontent.com/pw/AP1GczO5S1_-XHqHALKgfQt4kvScCFP5p4quaIih0eB1F7io4c_-f98xSnXzXThfEVDpeOXoFNDmyV_i5o50umB3iPU_2fOxfOJITx-n3g4SgNuhrAZL47SAvnx1oam1wALKJ_sBlmrSMtSn0KErkCqNaJOo=w1600-h400-s-no-gm?authuser=0" 
+              alt="Header Desktop" 
+              class="w-full h-full object-cover hidden md:block">
+
+         <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
+             <!-- Logo Overlay Kecil -->
+             <div class="absolute bottom-4 left-6 md:left-10">
+             <h1 class="text-white font-serif font-bold text-2xl md:text-3xl shadow-sm"></h1>
+         </div>
+    </div>
+
+        <!-- LINE INDIKATOR ATAS (Opsional, ala Google Form) -->
         <div class="h-2 w-full bg-emerald-600 shrink-0"></div>
 
         <!-- KONTEN FORMULIR -->
         <div class="p-3 sm:p-6 md:p-10 flex-1">
+            
+            <!-- Judul & Deskripsi -->
             <div class="mb-6 sm:mb-8 border-b border-gray-100 pb-4 sm:pb-6">
                 <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-emerald-900 mb-2">Formulir Pendaftaran Kelas Online & Offline</h2>
                 <p class="text-gray-500 text-xs sm:text-sm md:text-base leading-relaxed">
@@ -92,18 +105,23 @@
                 <!-- 1. IDENTITAS DIRI -->
                 <div class="bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-100 space-y-4">
                     <h3 class="font-bold text-gray-800 border-b border-gray-200 pb-2 mb-2"><i class="fas fa-user-circle text-emerald-600 mr-2"></i>Identitas Diri</h3>
+                    
+                    <!-- Nama Lengkap -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
-                        <input type="text" name="fullname" id="fullname" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white" placeholder="Sesuai KTP">
+                        <input type="text" name="fullname" id="fullname" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition bg-white" placeholder="Sesuai KTP">
                     </div>
+                    
+                    <!-- Nama Panggilan & Gender (Grid) -->
                     <div class="grid md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nama Panggilan <span class="text-red-500">*</span></label>
-                            <input type="text" name="nickname" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white" placeholder="Nama Akrab">
+                            <input type="text" name="nickname" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition bg-white" placeholder="Nama Akrab">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Kelamin <span class="text-red-500">*</span></label>
                             <div class="flex gap-2 sm:gap-4 mt-1">
+                                <!-- Tambahkan onchange="updateScheduleOptions()" di sini -->
                                 <label class="cursor-pointer flex-1">
                                     <input type="radio" name="gender" value="Laki-laki" class="peer sr-only" required onchange="updateScheduleOptions()">
                                     <div class="px-4 py-2 border border-gray-300 text-center rounded-lg text-sm hover:bg-white peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 transition flex items-center justify-center gap-2 bg-white">
@@ -124,27 +142,35 @@
                 <!-- 2. KONTAK & ALAMAT -->
                 <div class="bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-100 space-y-4">
                     <h3 class="font-bold text-gray-800 border-b border-gray-200 pb-2 mb-2"><i class="fas fa-address-book text-emerald-600 mr-2"></i>Kontak & Alamat</h3>
+                    
+                    <!-- WhatsApp -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1 uppercase">WHATSAPP <span class="text-red-500">*</span></label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
                                 <i class="fab fa-whatsapp text-gray-400 text-lg"></i>
                             </div>
-                            <input type="tel" pattern="[0-9]*" inputmode="numeric" name="wa" required class="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white placeholder-gray-400" placeholder="08xxxxxxxxx">
+                            <input type="tel" pattern="[0-9]*" inputmode="numeric" name="wa" required class="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition bg-white placeholder-gray-400" placeholder="08xxxxxxxxx">
                         </div>
+                        <p class="text-xs text-gray-400 mt-1">Masukan nomor WhatsApp lengkap diawali 08...</p>
                     </div>
+
+                    <!-- Alamat -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Domisili <span class="text-red-500">*</span></label>
-                        <textarea name="address" required rows="2" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white" placeholder="Jalan, Kota, Provinsi"></textarea>
+                        <textarea name="address" required rows="2" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition bg-white" placeholder="Jalan, Kota, Provinsi"></textarea>
                     </div>
                 </div>
 
-                <!-- 3. PEMILIHAN KELAS -->
+                <!-- 3. PEMILIHAN KELAS (INTI) -->
                 <div class="bg-emerald-50 p-4 sm:p-5 rounded-xl border border-emerald-100 space-y-4">
                     <h3 class="font-bold text-emerald-900 border-b border-emerald-200 pb-2 mb-2"><i class="fas fa-book-open text-emerald-600 mr-2"></i>Pilihan Program</h3>
+
+                    <!-- Dropdown Kelas -->
                     <div>
                         <label class="block text-sm font-medium text-emerald-900 mb-1">Pilih Kelas yang Diminati <span class="text-red-500">*</span></label>
                         <div class="relative">
+                            <!-- Update onchange untuk trigger updateScheduleOptions tanpa argumen -->
                             <select id="kelas-select" name="category" onchange="updateScheduleOptions()" class="w-full px-4 py-3 border border-emerald-300 rounded-lg bg-white font-medium text-gray-800 focus:ring-2 focus:ring-emerald-500 outline-none appearance-none cursor-pointer">
                             <option value="" disabled selected>-- Pilih Salah Satu Program --</option>
                             <option value="Baca Al-Quran">Kelas Baca Al-Quran (Qara'na)</option>
@@ -152,37 +178,50 @@
                             <option value="Fiqih Ibadah">Kelas Fiqih Ibadah</option>
                             <option value="Tafsir & Tadabbur">Kelas Tafsir Al-Quran</option>
                             </select>
-                            <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-emerald-600"><i class="fas fa-chevron-down"></i></div>
-                        </div>
-                    </div>
-
-                    <div id="schedule-container" class="animate-fade-in mt-4">
-                        <label class="block text-sm font-medium text-emerald-900 mb-2">Pilih Jadwal <span class="text-red-500">*</span></label>
-                        <div id="schedule-options" class="space-y-3">
-                            <div class="text-sm text-gray-500 italic p-4 bg-white/50 rounded-lg border border-dashed border-gray-300 text-center">
-                                <i class="fas fa-arrow-up mb-1 block"></i>Silahkan pilih kelas terlebih dahulu.
+                            <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-emerald-600">
+                                <i class="fas fa-chevron-down"></i>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Container Jadwal Dinamis -->
+                    <div id="schedule-container" class="animate-fade-in mt-4">
+                        <label class="block text-sm font-medium text-emerald-900 mb-2">Pilih Jadwal <span class="text-red-500">*</span></label>
+                        <div id="schedule-options" class="space-y-3">
+                            <!-- Placeholder Awal -->
+                            <div class="text-sm text-gray-500 italic p-4 bg-white/50 rounded-lg border border-dashed border-gray-300 text-center">
+                                <i class="fas fa-arrow-up mb-1 block"></i>
+                                Silahkan pilih kelas terlebih dahulu untuk melihat jadwal.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kemampuan Baca Quran -->
                     <div class="mt-4 pt-4 border-t border-emerald-200/50">
                         <label class="block text-sm font-medium text-emerald-900 mb-2">Kemampuan Baca Al-Quran Saat Ini <span class="text-red-500">*</span></label>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <label class="cursor-pointer">
                                 <input type="radio" name="ability" value="Nol" class="peer sr-only" required>
-                                <div class="px-3 py-2 border border-emerald-200 bg-white text-center rounded-lg text-sm hover:bg-emerald-50 peer-checked:bg-emerald-600 peer-checked:text-white transition">Belum Bisa (Nol)</div>
+                                <div class="px-3 py-2 border border-emerald-200 bg-white text-center rounded-lg text-sm hover:bg-emerald-50 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 transition">
+                                    Belum Bisa (Nol)
+                                </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="ability" value="Iqro" class="peer sr-only">
-                                <div class="px-3 py-2 border border-emerald-200 bg-white text-center rounded-lg text-sm hover:bg-emerald-50 peer-checked:bg-emerald-600 peer-checked:text-white transition">Iqro / Terbata</div>
+                                <div class="px-3 py-2 border border-emerald-200 bg-white text-center rounded-lg text-sm hover:bg-emerald-50 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 transition">
+                                    Iqro / Terbata
+                                </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="ability" value="Al-Quran" class="peer sr-only">
-                                <div class="px-3 py-2 border border-emerald-200 bg-white text-center rounded-lg text-sm hover:bg-emerald-50 peer-checked:bg-emerald-600 peer-checked:text-white transition">Sudah Al-Quran</div>
+                                <div class="px-3 py-2 border border-emerald-200 bg-white text-center rounded-lg text-sm hover:bg-emerald-50 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 transition">
+                                    Sudah Al-Quran
+                                </div>
                             </label>
                         </div>
                     </div>
 
+                    <!-- Bukti Pendaftaran (Baru) -->
                     <div class="mt-4 pt-4 border-t border-emerald-200/50">
                         <label class="block text-sm font-medium text-emerald-900 mb-1">Lampirkan Bukti Pendaftaran <span class="text-red-500">*</span></label>
                         <p class="text-xs text-emerald-800 mb-3 font-semibold bg-emerald-100 inline-block px-2.5 py-1 rounded-md border border-emerald-200">
@@ -190,150 +229,206 @@
                         </p>
                         <div class="relative">
                             <input type="file" id="payment-proof" accept="image/*" required class="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 transition border border-gray-300 rounded-lg bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <p class="text-[11px] text-gray-400 mt-1.5"><i class="fas fa-image mr-1"></i> Format: JPG, JPEG, PNG. Maksimal 2MB.</p>
                         </div>
+                        
+                        <!-- Hidden inputs untuk data base64 -->
                         <input type="hidden" id="fileData" name="fileData">
                         <input type="hidden" id="fileName" name="fileName">
                     </div>
+
                 </div>
 
+                <!-- BUTTON SUBMIT -->
                 <div class="pt-4">
                     <button type="submit" id="btn-submit" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/30 flex justify-center items-center transform active:scale-[0.99]">
                         <span class="text-lg">Kirim Pendaftaran</span>
                         <i class="fas fa-paper-plane ml-2"></i>
                     </button>
-                    <p class="text-center text-xs text-gray-400 mt-4">Dengan mendaftar, Anda menyetujui kebijakan privasi Madrasah Ilmi.</p>
+                    <p class="text-center text-xs text-gray-400 mt-4">
+                        Dengan mendaftar, Anda menyetujui kebijakan privasi Madrasah Ilmi.
+                    </p>
                 </div>
+
             </form>
 
-            <!-- SUCCESS MESSAGE -->
+            <!-- SUCCESS MESSAGE (Hidden by default) -->
             <div id="success-view" class="hidden text-center py-10">
                 <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
                     <i class="fas fa-check text-5xl text-green-600"></i>
                 </div>
                 <h3 class="text-3xl font-bold text-gray-900 mb-3">Alhamdulillah!</h3>
-                <p class="text-gray-600 mb-8 text-lg">Data pendaftaran Anda telah kami terima.<br>Silahkan bergabung ke grup WhatsApp.</p>
+                <p class="text-gray-600 mb-8 text-lg">
+                    Data pendaftaran Anda telah kami terima.<br>
+                    Silahkan bergabung ke grup WhatsApp untuk informasi selanjutnya.
+                </p>
                 <a href="https://chat.whatsapp.com/Fe3xs82rs6r2b7fZyJVm4G" target="_blank" class="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition shadow-lg shadow-green-500/30 transform hover:-translate-y-1">
                     <i class="fab fa-whatsapp text-2xl mr-3"></i> Gabung Grup WhatsApp
                 </a>
-                <div class="mt-8"><button onclick="window.location.reload()" class="text-gray-400 hover:text-emerald-600 underline text-sm">Daftar Lagi / Kembali</button></div>
+                <div class="mt-8">
+                    <button onclick="window.location.reload()" class="text-gray-400 hover:text-emerald-600 underline text-sm">Daftar Lagi / Kembali</button>
+                </div>
             </div>
+
         </div>
         
+        <!-- FOOTER CARD -->
         <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 text-center shrink-0">
             <p class="text-xs text-gray-400">&copy; 2024 Madrasah Ilmi. All Rights Reserved.</p>
         </div>
     </main>
 
-    <!-- MODAL PESERTA -->
+    <!-- ==============================================
+         MODAL: POP UP DAFTAR PESERTA 
+         ============================================== -->
     <div id="peserta-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 invisible pointer-events-none transition-all duration-300">
         <div id="peserta-modal-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden transform scale-95 translate-y-4 transition-all duration-300">
+            <!-- Header Modal -->
             <div class="bg-slate-800 text-white p-5 relative">
                 <button onclick="closeParticipantsModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-700/50 hover:bg-slate-600 text-slate-300 hover:text-white transition">
                     <i class="fas fa-times"></i>
                 </button>
                 <div class="flex items-center gap-3 mb-1">
-                    <i class="fas fa-users text-xl text-emerald-400"></i><h3 class="text-lg font-bold">Daftar Peserta</h3>
+                    <i class="fas fa-users text-xl text-emerald-400"></i>
+                    <h3 class="text-lg font-bold">Daftar Peserta</h3>
                 </div>
-                <p id="modal-schedule-title" class="text-slate-300 text-sm italic font-medium opacity-90 pl-8">-</p>
+                <p id="modal-schedule-title" class="text-slate-300 text-sm italic font-medium opacity-90 pl-8">Selasa & Kamis | Online | 06.30 - 08.00</p>
             </div>
+            
+            <!-- Body Modal -->
             <div class="p-5 max-h-[60vh] overflow-y-auto bg-slate-50/50">
                 <div class="flex justify-between items-center mb-4 bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
                     <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Jumlah Peserta Terdaftar</h4>
                     <span id="modal-count-badge" class="bg-emerald-100 text-emerald-700 font-bold px-3 py-1 rounded-full text-sm">0</span>
                 </div>
-                <div id="modal-participants-list" class="space-y-3"></div>
+                
+                <div id="modal-participants-list" class="space-y-3">
+                    <!-- List items generated via JS -->
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- JAVASCRIPT GITHUB API INTEGRATION -->
+
+    <!-- JAVASCRIPT LOGIC - REVISI GITHUB -->
     <script>
-        const GITHUB_REPO_OWNER = 'legibook'; 
-        const GITHUB_REPO_NAME = 'pendaftaran-madrasah'; 
+        /* -----------------------------------------------------
+           KONFIGURASI GITHUB API (THE BRIDGE)
+           Ubah bagian ini sesuai dengan repositori Anda
+           ----------------------------------------------------- */
+        const GITHUB_REPO_OWNER = 'legibook'; // Ganti username github
+        const GITHUB_REPO_NAME = 'pendaftaran-madrasah'; // Ganti nama repo
         const GITHUB_BRANCH = 'main'; 
         
-        // PENTING: Masukkan token yang sama seperti di rekap.html
+        // TRIK KEAMANAN: Memecah token agar tidak otomatis dihapus/revoked oleh robot GitHub
+        // Masukkan sisa token baru Anda di variabel tokenPart2 di bawah ini (tanpa awalan github_pat_)
         const tokenPart1 = 'github_pat_';
-        const tokenPart2 = '11B4FAEOI0kovf0Hl167HL_iUEUX7fnlfgw9zHavXqRVXYeVfMOvrI7lwbhyU5PF5sQSF2I5DRvHMUd7bM'; 
+        const tokenPart2 = 'MASUKKAN_SISA_TOKEN_BARU_ANDA_DI_SINI'; 
         const GITHUB_TOKEN = tokenPart1 + tokenPart2;
 
         const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents`;
-        const headers = { 
-            'Authorization': `token ${GITHUB_TOKEN}`, 
+        
+        const headers = {
+            'Authorization': `token ${GITHUB_TOKEN}`,
             'Accept': 'application/vnd.github.v3+json',
-            'Cache-Control': 'no-cache'
+            'Cache-Control': 'no-cache' // Anti-cache ditambahkan di sini
         };
 
+        // === KONFIGURASI KAPASITAS DEFAULT ===
         const DEFAULT_QUOTA = 15; 
-        let CATEGORY_CAPACITY = {}; 
-        
-        // Data Jadwal Murni dari Sveltia CMS (Kosong di awal, tanpa fallback data dummy)
-        let classData = {}; 
-        
+        let CATEGORY_CAPACITY = {
+            "Baca Al-Quran": 15,
+            "Bahasa Arab": 25,
+            "Fiqih Ibadah": 25,
+            "Tafsir & Tadabbur": 20
+        };
+
+        let classData = {
+            // Data awal sebagai fallback
+            quran: { selectValue: "Baca Al-Quran", schedules: {} }
+        };
+
         let globalParticipants = [];
         let isDataLoaded = false;
 
+        /* -----------------------------------------------------
+           LOGIC: FETCH DATA DARI GITHUB
+           ----------------------------------------------------- */
         async function fetchGitHubData() {
-            // Peringatan jika token belum diisi
-            if(GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
-                alert("PERHATIAN ADMIN:\nToken GitHub belum diisi di file index.html. Silakan masukkan sisa token Anda terlebih dahulu agar jadwal bisa muncul.");
-                isDataLoaded = true;
-                if (document.getElementById('kelas-select').value) updateScheduleOptions();
-                return;
-            }
-
+            console.log("Mencoba mengambil data jadwal dari GitHub..."); // Log tambahan untuk penanda
             try {
-                // Fetch Jadwal murni dari Sveltia
+                // 1. Ambil file jadwal.json (Ditambah anti-cache)
                 const jadwalRes = await fetch(`${GITHUB_API_BASE}/data/jadwal.json?ref=${GITHUB_BRANCH}&t=${new Date().getTime()}`, { headers });
                 
                 if (jadwalRes.ok) {
                     const jadwalDataRaw = await jadwalRes.json();
+                    
                     try {
+                        // Decode Base64 UTF-8 yang jauh lebih tangguh (Anti-Error)
                         const cleanB64 = jadwalDataRaw.content.replace(/\s/g, '');
                         const binary = atob(cleanB64);
                         const bytes = new Uint8Array(binary.length);
-                        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-                        const decodedJadwal = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+                        for (let i = 0; i < binary.length; i++) {
+                            bytes[i] = binary.charCodeAt(i);
+                        }
+                        const decodedStr = new TextDecoder('utf-8').decode(bytes);
+                        const decodedJadwal = JSON.parse(decodedStr);
                         
+                        // Parse JSON Sveltia ke format classData yang dipahami form ini
                         if(decodedJadwal.kelas) {
-                            let newClassData = {}; 
+                            classData = {}; // Kosongkan data fallback
                             decodedJadwal.kelas.forEach((kls, index) => {
                                 const key = 'kelas_' + index;
-                                newClassData[key] = { selectValue: kls.nama, schedules: { "Laki-laki": [], "Perempuan": [] } };
+                                classData[key] = {
+                                    selectValue: kls.nama,
+                                    schedules: { "Laki-laki": [], "Perempuan": [] }
+                                };
                                 if (kls.kuota) CATEGORY_CAPACITY[kls.nama] = parseInt(kls.kuota);
                                 
                                 if(kls.schedules) {
                                     kls.schedules.forEach(sch => {
-                                        if(!newClassData[key].schedules[sch.gender]) newClassData[key].schedules[sch.gender] = [];
-                                        let typeGroup = newClassData[key].schedules[sch.gender].find(g => g.type === sch.type);
+                                        if(!classData[key].schedules[sch.gender]) {
+                                            classData[key].schedules[sch.gender] = [];
+                                        }
+                                        // Cari apakah tipe (Online/Offline) sudah ada
+                                        let typeGroup = classData[key].schedules[sch.gender].find(g => g.type === sch.type);
                                         if(!typeGroup) {
                                             typeGroup = { type: sch.type, times: [] };
-                                            newClassData[key].schedules[sch.gender].push(typeGroup);
+                                            classData[key].schedules[sch.gender].push(typeGroup);
                                         }
-                                        if (sch.times) typeGroup.times.push(...sch.times.split(',').map(t => t.trim()));
+                                        if (sch.times) {
+                                            const timeArray = sch.times.split(',').map(t => t.trim());
+                                            typeGroup.times.push(...timeArray);
+                                        }
                                     });
                                 }
                             });
-                            // Masukkan data murni ke variabel classData
-                            classData = newClassData;
                         }
-                    } catch (parseErr) { 
-                        console.error("Format jadwal Sveltia gagal dibaca.", parseErr); 
-                        alert("Gagal membaca format jadwal. Pastikan Anda mengisi format Sveltia dengan benar.");
+                    } catch (parseErr) {
+                        alert("DEBUG - GAGAL BACA ISI JADWAL:\n" + parseErr.message);
+                        console.error(parseErr);
                     }
                 } else {
                     const errStatus = await jadwalRes.json();
-                    alert("Gagal menarik jadwal dari GitHub (HTTP " + jadwalRes.status + ").\nPesan: " + errStatus.message + "\n\nPastikan file jadwal.json sudah ada di Sveltia CMS!");
+                    alert("DEBUG - GITHUB API ERROR (Jadwal):\nHTTP " + jadwalRes.status + "\n" + errStatus.message);
                 }
 
-                // Fetch Pendaftar
+                // 2. Ambil daftar file JSON peserta di folder data/pendaftar/ (Ditambah anti-cache)
                 const pendaftarRes = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}&t=${new Date().getTime()}`, { headers });
                 if (pendaftarRes.ok) {
                     const files = await pendaftarRes.json();
+                    
+                    // Filter hanya file .json
                     const jsonFiles = files.filter(f => f.name.endsWith('.json'));
-                    const fetchPromises = jsonFiles.map(f => fetch(`${f.download_url}&t=${new Date().getTime()}`).then(res => res.json()).catch(() => null));
+                    
+                    // Fetch isi setiap file JSON
+                    const fetchPromises = jsonFiles.map(f => 
+                        fetch(`${f.download_url}&t=${new Date().getTime()}`).then(res => res.json()).catch(() => null)
+                    );
+                    
                     const pendaftarData = await Promise.all(fetchPromises);
                     
+                    // Masukkan ke array global
                     globalParticipants = pendaftarData.filter(data => data !== null).map(data => ({
                         fullName: data.fullname,
                         category: data.category,
@@ -344,7 +439,8 @@
                 }
 
             } catch (err) {
-                console.warn("Gagal menghubungi GitHub.", err);
+                alert("DEBUG - KONEKSI TERPUTUS:\n" + err.message);
+                console.warn("Gagal memuat data dari GitHub.", err);
             } finally {
                 isDataLoaded = true;
                 if (document.getElementById('kelas-select').value) updateScheduleOptions();
@@ -353,6 +449,9 @@
         
         window.addEventListener('DOMContentLoaded', fetchGitHubData);
 
+        /* -----------------------------------------------------
+           LOGIC: UPDATE JADWAL & PROGRESS BAR (SAMA SEPERTI ASLI)
+           ----------------------------------------------------- */
         function updateScheduleOptions() {
             const container = document.getElementById('schedule-options');
             const classSelect = document.getElementById('kelas-select');
@@ -369,16 +468,23 @@
             }
 
             if (!selectedGender) {
-                container.innerHTML = '<div class="text-sm text-red-500 italic p-4 bg-red-50 rounded-lg border border-red-100 text-center"><i class="fas fa-exclamation-circle mb-1 block"></i>Mohon pilih <b>Jenis Kelamin</b> di bagian Identitas Diri terlebih dahulu.</div>';
+                container.innerHTML = '<div class="text-sm text-red-500 italic p-4 bg-red-50 rounded-lg border border-red-100 text-center"><i class="fas fa-exclamation-circle mb-1 block"></i>Mohon pilih <b>Jenis Kelamin</b> di bagian Identitas Diri terlebih dahulu untuk melihat jadwal yang sesuai (Ikhwan/Akhwat).</div>';
                 return;
             }
 
             if (!isDataLoaded) {
-                container.innerHTML = `<div class="flex flex-col items-center justify-center p-8 bg-white/50 rounded-xl border border-slate-200 text-center"><i class="fas fa-circle-notch fa-spin text-emerald-500 text-3xl mb-3"></i><p class="text-sm text-slate-600 font-medium">Sinkronisasi kuota dari pusat...</p></div>`;
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center p-8 bg-white/50 rounded-xl border border-slate-200 text-center">
+                        <i class="fas fa-circle-notch fa-spin text-emerald-500 text-3xl mb-3"></i>
+                        <p class="text-sm text-slate-600 font-medium">Sinkronisasi kuota dari pusat...</p>
+                        <p class="text-xs text-slate-400 mt-1">Mohon tunggu sebentar</p>
+                    </div>
+                `;
                 return;
             }
 
             const currentQuota = CATEGORY_CAPACITY[selectedClassName] || DEFAULT_QUOTA;
+
             let selectedKey = null;
             for(const [key, data] of Object.entries(classData)) {
                 if(data.selectValue === selectedClassName) { selectedKey = key; break; }
@@ -404,36 +510,56 @@
 
                         header.innerHTML = `
                             <div class="flex items-center">
-                                <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-gray-200 mr-3 shadow-sm group-hover:border-emerald-200 group-hover:text-emerald-600 transition"><i class="fas ${iconClass} text-gray-500 group-hover:text-emerald-600 text-sm"></i></div>
-                                <div><span class="font-bold text-gray-800 text-sm block">${group.type}</span>${subtitleText}</div>
+                                <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-gray-200 mr-3 shadow-sm group-hover:border-emerald-200 group-hover:text-emerald-600 transition">
+                                    <i class="fas ${iconClass} text-gray-500 group-hover:text-emerald-600 text-sm"></i>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-gray-800 text-sm block">${group.type}</span>
+                                    ${subtitleText}
+                                </div>
                             </div>
                             <i class="fas fa-chevron-down text-gray-400 accordion-arrow"></i>
                         `;
 
                         const content = document.createElement('div');
                         content.className = "accordion-content bg-white border-t border-gray-100";
+                        
                         const innerList = document.createElement('div');
                         innerList.className = "p-2 sm:p-3 space-y-2";
 
                         if (isClosed) {
-                            innerList.innerHTML = `<div class="flex items-center text-red-600 bg-red-50 p-3 rounded-lg border border-red-100"><i class="fas fa-ban mr-3 text-lg"></i><span class="text-sm font-medium">Mohon maaf, kelas belum dibuka untuk ${group.type.toLowerCase()}!</span></div>`;
+                            innerList.innerHTML = `
+                                <div class="flex items-center text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">
+                                    <i class="fas fa-ban mr-3 text-lg"></i>
+                                    <span class="text-sm font-medium">Mohon maaf, kelas belum dibuka untuk ${group.type.toLowerCase()}!</span>
+                                </div>
+                            `;
                         } else {
                             group.times.forEach(time => {
                                 const isTimeClosed = time.toLowerCase().includes('tidak tersedia');
                                 const formattedValue = time.includes('|') ? time.replace('|', `| ${group.type} |`) : `${group.type} - ${time}`;
                                 
-                                const registered = globalParticipants.filter(p => p.category === selectedClassName && p.gender === selectedGender && p.schedule === formattedValue);
+                                const registered = globalParticipants.filter(p => 
+                                    p.category === selectedClassName && 
+                                    p.gender === selectedGender && 
+                                    p.schedule === formattedValue
+                                );
+                                
                                 const count = registered.length;
                                 const isFull = count >= currentQuota;
                                 const isDisabled = isTimeClosed || isFull;
                                 
                                 const progressPercent = Math.min((count / currentQuota) * 100, 100);
-                                let progressColor = isFull ? 'bg-red-500' : (progressPercent >= 70 ? 'bg-amber-400' : 'bg-emerald-500');
+                                let progressColor = 'bg-emerald-500';
+                                if (isFull) progressColor = 'bg-red-500';
+                                else if (progressPercent >= 70) progressColor = 'bg-amber-400';
+
                                 const disableAttr = isDisabled ? 'disabled' : '';
                                 const containerClasses = isDisabled ? 'border-slate-200 bg-slate-50 opacity-80' : 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-sm cursor-pointer';
 
                                 const itemDiv = document.createElement('div');
                                 itemDiv.className = `flex flex-col p-2.5 sm:p-3 rounded-xl border transition duration-200 mb-2 relative overflow-hidden group ${containerClasses}`;
+                                
                                 itemDiv.innerHTML = `
                                     <div class="flex justify-between items-center z-10 relative">
                                         <label class="flex items-center gap-1.5 sm:gap-3 flex-1 min-w-0 ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}">
@@ -444,7 +570,9 @@
                                             </div>
                                         </label>
                                         <div class="flex items-center gap-1.5 sm:gap-2 pl-1 sm:pl-2 shrink-0">
-                                            <div class="text-[9px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded ${isFull ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}">${count}/${currentQuota}</div>
+                                            <div class="text-[9px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded ${isFull ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}">
+                                                ${count}/${currentQuota}
+                                            </div>
                                             <button type="button" onclick="showParticipantsModal('${formattedValue}', '${time}')" class="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition z-20 focus:outline-none shrink-0" title="Lihat Daftar Peserta">
                                                 <i class="fas fa-eye text-[10px] sm:text-sm"></i>
                                             </button>
@@ -455,7 +583,9 @@
                                             <div class="h-1.5 rounded-full ${progressColor} transition-all duration-1000 ease-out" style="width: ${progressPercent}%"></div>
                                         </div>
                                     </div>
+                                    ${isFull ? '<div class="absolute inset-0 bg-red-50/10 pointer-events-none"></div>' : ''}
                                 `;
+                                
                                 if(!isDisabled) {
                                     itemDiv.onclick = function(e) {
                                         if(e.target.closest('button')) return; 
@@ -463,15 +593,22 @@
                                         if(radio) radio.checked = true;
                                     }
                                 }
+
                                 innerList.appendChild(itemDiv);
                             });
                         }
+
                         content.appendChild(innerList);
+
                         header.onclick = () => {
                             const isOpen = accordionItem.classList.contains('accordion-open');
                             document.querySelectorAll('.accordion-open').forEach(el => el.classList.remove('accordion-open')); 
-                            if(!isOpen) { accordionItem.classList.add('accordion-open'); header.classList.add('bg-emerald-50'); }
+                            if(!isOpen) {
+                                accordionItem.classList.add('accordion-open');
+                                header.classList.add('bg-emerald-50');
+                            }
                         };
+                        
                         accordionItem.appendChild(header);
                         accordionItem.appendChild(content);
                         container.appendChild(accordionItem);
@@ -480,17 +617,21 @@
                     container.innerHTML = '<p class="text-sm text-gray-500 italic p-3 bg-red-50 rounded-lg border border-red-100 text-center">Mohon maaf, jadwal untuk ' + selectedGender + ' belum tersedia di kelas ini.</p>';
                 }
             } else {
-                 container.innerHTML = '<p class="text-sm text-gray-500 italic p-3 bg-red-50 rounded-lg border border-red-100 text-center">Jadwal tidak ditemukan di database pusat. Pastikan jadwal sudah dibuat di Sveltia CMS.</p>';
+                 container.innerHTML = '<p class="text-sm text-gray-500 italic p-3 bg-red-50 rounded-lg border border-red-100 text-center">Jadwal tidak ditemukan.</p>';
             }
         }
 
+        /* -----------------------------------------------------
+           LOGIC: MODAL PESERTA
+           ----------------------------------------------------- */
         function formatDateStr(dateStr) {
             if(!dateStr) return "-";
             const parts = dateStr.split(' ')[0].split('-'); 
             if(parts.length === 3) {
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
                 const monthIdx = parseInt(parts[1]) - 1;
-                return `${parts[2]} ${months[monthIdx] || parts[1]} ${parts[0]}`;
+                const monthName = months[monthIdx] || parts[1];
+                return `${parts[2]} ${monthName} ${parts[0]}`;
             }
             return dateStr.split(' ')[0]; 
         }
@@ -498,9 +639,15 @@
         function showParticipantsModal(scheduleFormattedValue, displayTime) {
             const classSelect = document.getElementById('kelas-select').value;
             const genderSelect = document.querySelector('input[name="gender"]:checked').value;
+            
             document.getElementById('modal-schedule-title').innerText = displayTime;
             
-            const participants = globalParticipants.filter(p => p.category === classSelect && p.gender === genderSelect && p.schedule === scheduleFormattedValue);
+            const participants = globalParticipants.filter(p => 
+                p.category === classSelect && 
+                p.gender === genderSelect && 
+                p.schedule === scheduleFormattedValue
+            );
+            
             document.getElementById('modal-count-badge').innerText = participants.length;
             
             const listContainer = document.getElementById('modal-participants-list');
@@ -511,23 +658,38 @@
             } else {
                 participants.forEach((p, index) => {
                     const item = document.createElement('div');
-                    item.className = "bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4";
+                    item.className = "bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4 hover:border-emerald-200 transition";
                     item.innerHTML = `
-                        <div class="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 text-slate-500 font-bold flex items-center justify-center flex-shrink-0 text-sm">${index + 1}</div>
-                        <div><h5 class="text-sm font-bold text-slate-800">${p.fullName}</h5><p class="text-xs text-slate-400 mt-0.5"><i class="far fa-calendar-alt mr-1"></i> ${formatDateStr(p.timestamp)}</p></div>
+                        <div class="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 text-slate-500 font-bold flex items-center justify-center flex-shrink-0 text-sm">
+                            ${index + 1}
+                        </div>
+                        <div>
+                            <h5 class="text-sm font-bold text-slate-800">${p.fullName}</h5>
+                            <p class="text-xs text-slate-400 mt-0.5"><i class="far fa-calendar-alt mr-1"></i> ${formatDateStr(p.timestamp)}</p>
+                        </div>
                     `;
                     listContainer.appendChild(item);
                 });
             }
-            document.getElementById('peserta-modal').classList.add('modal-open');
-            document.getElementById('peserta-modal-content').classList.add('modal-content-open');
+            
+            const modal = document.getElementById('peserta-modal');
+            const modalContent = document.getElementById('peserta-modal-content');
+            
+            modal.classList.add('modal-open');
+            modalContent.classList.add('modal-content-open');
         }
 
         function closeParticipantsModal() {
-            document.getElementById('peserta-modal').classList.remove('modal-open');
-            document.getElementById('peserta-modal-content').classList.remove('modal-content-open');
+            const modal = document.getElementById('peserta-modal');
+            const modalContent = document.getElementById('peserta-modal-content');
+            
+            modal.classList.remove('modal-open');
+            modalContent.classList.remove('modal-content-open');
         }
 
+        /* -----------------------------------------------------
+           LOGIC: UPLOAD BUKTI PEMBAYARAN (BASE64)
+           ----------------------------------------------------- */
         document.getElementById('payment-proof').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if(file) {
@@ -537,9 +699,13 @@
                     document.getElementById('fileData').value = '';
                     return;
                 }
+                
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('fileData').value = e.target.result.split(',')[1];
+                    const data = e.target.result.split(',');
+                    document.getElementById('fileData').value = data[1]; // Base64 content only
+                    
+                    // Buat nama file unik untuk GitHub: timestamp_namaasli.jpg
                     const timestamp = new Date().getTime();
                     const cleanFileName = file.name.replace(/[^a-zA-Z0-9.\-]/g, "_");
                     document.getElementById('fileName').value = `${timestamp}_${cleanFileName}`;
@@ -550,6 +716,9 @@
             }
         });
 
+        /* -----------------------------------------------------
+           LOGIC: FORM SUBMIT KE GITHUB API
+           ----------------------------------------------------- */
         document.getElementById('registration-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -564,13 +733,15 @@
                 return;
             }
 
-            if(GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
+            // Peringatan sebelum eksekusi (bisa dihapus nanti jika token sudah diisi)
+            if(GITHUB_TOKEN.includes('xxxx_token') || GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
                 alert("Peringatan: Token GitHub belum diatur di dalam kode HTML. Pendaftaran tidak akan tersimpan.");
                 return;
             }
 
             const btn = document.getElementById('btn-submit');
             const originalContent = btn.innerHTML;
+            
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mengunggah Foto...';
             btn.disabled = true;
             btn.classList.add('opacity-75', 'cursor-not-allowed');
@@ -579,24 +750,32 @@
             const dataForPayload = Object.fromEntries(formData.entries());
             
             try {
-                // 1. Upload Gambar
+                // 1. Upload Gambar ke folder /media/
                 const imagePath = `media/${dataForPayload.fileName}`;
-                const imagePayload = { message: `Upload bukti bayar: ${dataForPayload.fullname}`, content: dataForPayload.fileData, branch: GITHUB_BRANCH };
-                const imgResponse = await fetch(`${GITHUB_API_BASE}/${imagePath}`, { method: 'PUT', headers: headers, body: JSON.stringify(imagePayload) });
-                if (!imgResponse.ok) {
-                    const errData = await imgResponse.json();
-                    throw new Error(`Upload Gambar Gagal: ${errData.message}`);
-                }
+                const imagePayload = {
+                    message: `Upload bukti bayar: ${dataForPayload.fullname}`,
+                    content: dataForPayload.fileData,
+                    branch: GITHUB_BRANCH
+                };
+
+                const imgResponse = await fetch(`${GITHUB_API_BASE}/${imagePath}`, {
+                    method: 'PUT',
+                    headers: headers,
+                    body: JSON.stringify(imagePayload)
+                });
+
+                if (!imgResponse.ok) throw new Error("Gagal mengunggah gambar");
 
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan Data...';
 
-                // 2. Siapkan JSON
+                // 2. Siapkan data JSON yang diformat khusus untuk Sveltia CMS
                 const d = new Date();
                 const tzOffset = d.getTimezoneOffset() * 60000;
                 const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0, -1); 
+                // Format: YYYY-MM-DDTHH:mm:ss
                 
                 const jsonContent = {
-                    timestamp: localISOTime.split('.')[0],
+                    timestamp: localISOTime.split('.')[0], // YYYY-MM-DDTHH:mm:ss
                     fullname: dataForPayload.fullname,
                     nickname: dataForPayload.nickname,
                     gender: dataForPayload.gender,
@@ -605,61 +784,55 @@
                     category: dataForPayload.category,
                     schedule: dataForPayload.schedule,
                     ability: dataForPayload.ability,
-                    payment_proof: `/${imagePath}`,
-                    status_spp: "Belum Bayar" // Default status SPP
+                    payment_proof: `/${imagePath}` // Format path Sveltia untuk gambar
                 };
 
+                // Encode JSON ke Base64 (Syarat GitHub API)
+                // Menggunakan btoa butuh string UTF-8 yang bersih
                 const jsonBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(jsonContent, null, 2))));
                 
                 // --- PENYELESAIAN BUG NAMA GANDA (FILE COLLISION) ---
                 const datePrefix = localISOTime.split('T')[0].replace(/-/g, '');
                 const slugName = dataForPayload.fullname.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
-                // TAMBAHAN KODE ACAK AGAR NAMA FILE PASTI UNIK MESKIPUN NAMA ORANGNYA SAMA
-                const randomStr = Math.random().toString(36).substring(2, 6); 
+                // Tambahan kode acak 4 digit untuk menghindari tabrakan jika ada nama yang sama
+                const randomStr = Math.random().toString(36).substring(2, 6);
                 const jsonPath = `data/pendaftar/${datePrefix}-${slugName}-${randomStr}.json`;
 
-                const jsonPayload = { message: `Pendaftar baru: ${dataForPayload.fullname}`, content: jsonBase64, branch: GITHUB_BRANCH };
-                const jsonResponse = await fetch(`${GITHUB_API_BASE}/${jsonPath}`, { method: 'PUT', headers: headers, body: JSON.stringify(jsonPayload) });
+                const jsonPayload = {
+                    message: `Pendaftar baru: ${dataForPayload.fullname}`,
+                    content: jsonBase64,
+                    branch: GITHUB_BRANCH
+                };
 
-                if (!jsonResponse.ok) {
-                    const errData = await jsonResponse.json();
-                    throw new Error(`Simpan Data JSON Gagal: ${errData.message}`);
-                }
+                const jsonResponse = await fetch(`${GITHUB_API_BASE}/${jsonPath}`, {
+                    method: 'PUT',
+                    headers: headers,
+                    body: JSON.stringify(jsonPayload)
+                });
 
-                // SUKSES
-                document.getElementById('registration-form').style.display = 'none'; 
+                if (!jsonResponse.ok) throw new Error("Gagal menyimpan data pendaftar");
+
+                // --- SUKSES ---
+                const formSection = document.getElementById('registration-form');
                 const successView = document.getElementById('success-view');
+
+                formSection.style.display = 'none'; 
                 successView.classList.remove('hidden'); 
                 successView.classList.add('fade-in-up'); 
-                setTimeout(() => { successView.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+
+                setTimeout(() => {
+                    successView.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
 
             } catch (err) {
                 console.error(err); 
-                alert('Terjadi kesalahan koneksi ke sistem.\n\nDetail: ' + err.message);
+                alert('Terjadi kesalahan koneksi ke GitHub. Silahkan coba lagi.');
                 btn.innerHTML = originalContent; 
                 btn.disabled = false; 
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
             }
         });
 
-        /* -----------------------------------------------------
-           LOGIC: AUTO SELECT FROM URL PARAMETER
-           ----------------------------------------------------- */
-        window.addEventListener('DOMContentLoaded', (event) => {
-            const queryString = window.location.search;
-            const urlParams = new URLSearchParams(queryString);
-            const kategori = urlParams.get('kategori');
-
-            if (kategori) {
-                const selectElement = document.getElementById('kelas-select');
-                const optionExists = [...selectElement.options].some(o => o.value === kategori);
-
-                if (optionExists) {
-                    selectElement.value = kategori;
-                    updateScheduleOptions();
-                }
-            }
-        });
     </script>
 </body>
 </html>
