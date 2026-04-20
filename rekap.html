@@ -344,10 +344,9 @@
                     if(!isOpened) {
                         rowHTML += `<td class="p-4 text-center bg-slate-100 border-r border-slate-50"></td>`;
                     } else {
-                        // Hitung pendaftar
-                        // Di database formatnya biasanya "Online - Senin & Rabu | 06.30 - 08.00" 
-                        // sesuai dengan fungsi updateScheduleOptions() di formulir utama
-                        const dbFormat = `${col.keyType} - ${col.id} | ${timeStr}`;
+                        // Perbaikan Bug: Samakan persis format pembacaan database 
+                        // Sesuai input formulir -> "Senin & Rabu | Online | 06.30 - 08.00"
+                        const dbFormat = `${col.id} | ${col.keyType} | ${timeStr}`;
                         const enrolled = participants.filter(p => p.schedule === dbFormat);
                         const count = enrolled.length;
                         const isFull = count >= quota;
