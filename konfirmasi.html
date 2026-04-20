@@ -189,9 +189,22 @@
         const tokenPart2 = '11B4FAEOI0kovf0Hl167HL_iUEUX7fnlfgw9zHavXqRVXYeVfMOvrI7lwbhyU5PF5sQSF2I5DRvHMUd7bM'; 
         const GITHUB_TOKEN = tokenPart1 + tokenPart2;
 
+        // ==========================================
+        // PENGATURAN WAKTU MULAI PER KELAS (DINAMIS!)
+        // ==========================================
+        // Jika ada kelas baru di Sveltia, cukup tambahkan namanya di sini beserta bulan mulainya.
+        // Nama kelas harus sesuai persis dengan yang ada di Sveltia (contoh: "Baca Al-Quran").
+        const PENGATURAN_MULAI_KELAS = {
+            "Baca Al-Quran": { bulan: "April", tahun: 2026 },
+            "Bahasa Arab": { bulan: "Mei", tahun: 2026 },
+            "Fiqih Ibadah": { bulan: "Juni", tahun: 2026 },
+            "Tafsir & Tadabbur": { bulan: "Juli", tahun: 2026 },
+            // DEFAULT digunakan jika ada kelas baru yang didaftarkan tapi admin lupa menambahkannya ke daftar ini
+            "DEFAULT": { bulan: "Januari", tahun: 2026 } 
+        };
+
         const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents`;
         
-        // Header request GitHub (Aman CORS)
         const headers = { 
             'Authorization': `token ${GITHUB_TOKEN}`, 
             'Accept': 'application/vnd.github.v3+json'
@@ -200,7 +213,6 @@
         const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         let participantsDB = [];
 
-        // Temporary data holders
         let tempInputNameNormalized = '';
         let tempInputMonth = '';
         let tempInputYear = 0;
@@ -223,7 +235,7 @@
             return 0;
         }
 
-        // 1. FETCH DATA (DENGAN API REAL-TIME PENUH UNTUK MENCEGAH BUG CDN CACHE)
+        // 1. FETCH DATA (DENGAN API REAL-TIME PENUH)
         async function loadParticipants() {
             if(GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
                 document.getElementById('initial-loading').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Token GitHub belum diatur.';
@@ -241,21 +253,16 @@
                 const jsonFiles = files.filter(f => f.name.endsWith('.json'));
                 
                 const fetchPromises = jsonFiles.map(f => {
-                    // PERBAIKAN KRUSIAL: Menggunakan f.url (API Endpoint), BUKAN f.download_url (CDN).
-                    // Ini memaksa browser menarik data 100% Real-Time dari inti server GitHub.
                     const apiUrl = f.url.includes('?') ? `${f.url}&t=${new Date().getTime()}` : `${f.url}?t=${new Date().getTime()}`;
-                    
                     return fetch(apiUrl, { headers })
                     .then(r => r.json())
                     .then(apiData => {
-                        // GitHub API mengembalikan konten berwujud Base64, mari kita terjemahkan
                         const cleanB64 = apiData.content.replace(/\s/g, '');
                         const binary = atob(cleanB64);
                         const bytes = new Uint8Array(binary.length);
                         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
                         const decodedStr = new TextDecoder('utf-8').decode(bytes);
                         const parsedContent = JSON.parse(decodedStr);
-                        
                         return { path: apiData.path, sha: apiData.sha, content: parsedContent };
                     })
                     .catch(() => null);
@@ -370,23 +377,34 @@
             const localMonths = getAbsoluteMonths(localStatus);
             const effectiveStatus = (localMonths > apiMonths) ? localStatus : apiStatus;
             
+            // Menarik Pengaturan Kelas Secara Spesifik berdasarkan kategori/kelas peserta
+            const userCategory = targetUser.content.category || "DEFAULT";
+            const classConfig = PENGATURAN_MULAI_KELAS[userCategory] || PENGATURAN_MULAI_KELAS["DEFAULT"];
+            const KELAS_MULAI_BULAN = classConfig.bulan;
+            const KELAS_MULAI_TAHUN = classConfig.tahun;
+
             let lastTotalMonths = 0;
             let lastMonthStr = "";
             let lastYearNum = 0;
 
             if (effectiveStatus.trim() === '' || effectiveStatus.toLowerCase() === 'belum bayar') {
-                // RULE 1: JIKA BELUM PERNAH BAYAR, AMBIL TANGGAL DIA MENDAFTAR
-                const regDate = new Date(targetUser.content.timestamp);
-                lastYearNum = regDate.getFullYear();
-                let regMonthIdx = regDate.getMonth();
+                // RULE 1: Gunakan Pengaturan Spesifik Kelas sebagai titik awal tagihan!
+                lastYearNum = KELAS_MULAI_TAHUN;
+                let startMonthIdx = MONTHS.indexOf(KELAS_MULAI_BULAN);
                 
-                if (regMonthIdx === 0) {
+                if(startMonthIdx === -1) {
+                    alert("Terdapat kesalahan ejaan nama bulan di bagian PENGATURAN_MULAI_KELAS. Harap hubungi Admin.");
+                    return;
+                }
+
+                // Tarik patokan ke 1 bulan SEBELUM bulan mulai kelas
+                if (startMonthIdx === 0) {
                     lastMonthStr = MONTHS[11];
                     lastYearNum -= 1;
                     lastTotalMonths = (lastYearNum * 12) + 11;
                 } else {
-                    lastMonthStr = MONTHS[regMonthIdx - 1];
-                    lastTotalMonths = (lastYearNum * 12) + (regMonthIdx - 1);
+                    lastMonthStr = MONTHS[startMonthIdx - 1];
+                    lastTotalMonths = (lastYearNum * 12) + (startMonthIdx - 1);
                 }
             } else {
                 // JIKA SUDAH BAYAR, BACA STATUS TERAKHIRNYA
@@ -406,7 +424,11 @@
             const diff = inputTotalMonths - lastTotalMonths;
 
             if (diff <= 0) {
-                document.getElementById('warning-message').innerHTML = `Pembayaran untuk bulan <b>${inputMonthStr} ${inputYearNum}</b> tidak valid atau <b>sudah lunas</b>.<br><br>Sistem mencatat Anda sudah <b>Lunas hingga ${lastMonthStr} ${lastYearNum}</b>. Silakan pilih bulan setelahnya.`;
+                if (effectiveStatus.toLowerCase() === 'belum bayar') {
+                    document.getElementById('warning-message').innerHTML = `Pembayaran untuk bulan <b>${inputMonthStr} ${inputYearNum}</b> tidak diperlukan.<br><br>Sistem kami mencatat Kelas <b>${userCategory}</b> baru resmi dimulai pada <b>${KELAS_MULAI_BULAN} ${KELAS_MULAI_TAHUN}</b>. Silakan pilih bulan tersebut sebagai pembayaran pertama Anda.`;
+                } else {
+                    document.getElementById('warning-message').innerHTML = `Pembayaran untuk bulan <b>${inputMonthStr} ${inputYearNum}</b> tidak valid atau <b>sudah lunas</b>.<br><br>Sistem mencatat Anda sudah <b>Lunas hingga ${lastMonthStr} ${lastYearNum}</b>. Silakan pilih bulan setelahnya.`;
+                }
                 document.getElementById('warning-modal').classList.add('modal-open');
                 document.getElementById('warning-modal-content').classList.add('modal-content-open');
                 return;
@@ -419,7 +441,7 @@
                 }
                 
                 let statusPrefix = (effectiveStatus.toLowerCase() === 'belum bayar')
-                    ? `Anda tercatat <b>Belum Pernah Membayar SPP</b> sejak awal pendaftaran.`
+                    ? `Kelas <b>${userCategory}</b> yang Anda ikuti resmi dimulai pada <b>${KELAS_MULAI_BULAN} ${KELAS_MULAI_TAHUN}</b>.`
                     : `Status terakhir Anda adalah Lunas <b>${lastMonthStr} ${lastYearNum}</b>.`;
 
                 document.getElementById('warning-message').innerHTML = `Maaf, Anda melompati urutan bulan. Anda tidak bisa langsung membayar tagihan <b>${inputMonthStr} ${inputYearNum}</b>.<br><br>${statusPrefix} Anda diwajibkan untuk melunasi tagihan bulan-bulan sebelumnya terlebih dahulu:<br><span class="text-rose-600 font-bold block mt-2">${missedMonths.join('<br>')}</span>`;
@@ -428,11 +450,15 @@
                 return;
             }
 
-            // CEK VALIDASI 2: MENCEGAH BAYAR TERLALU JAUH KE DEPAN DARI BULAN AKTUAL HARI INI
+            // CEK VALIDASI 2: MENCEGAH BAYAR TERLALU JAUH KE DEPAN
             const nowDate = new Date();
             const nowTotalMonths = (nowDate.getFullYear() * 12) + nowDate.getMonth();
+            const startClassTotalMonths = (KELAS_MULAI_TAHUN * 12) + MONTHS.indexOf(KELAS_MULAI_BULAN);
             
-            if (inputTotalMonths > nowTotalMonths + 1) {
+            // Batas maksimal bayar: Bulan depan dari hari ini, ATAU bulan mulai kelas (mana yang lebih besar)
+            const maxAllowedMonth = Math.max(nowTotalMonths + 1, startClassTotalMonths);
+            
+            if (inputTotalMonths > maxAllowedMonth) {
                 document.getElementById('warning-message').innerHTML = `Pembayaran terlalu jauh ke depan!<br><br>Bulan aktual saat ini adalah <b>${MONTHS[nowDate.getMonth()]} ${nowDate.getFullYear()}</b>. Anda belum bisa membayar untuk tagihan bulan <b>${inputMonthStr} ${inputYearNum}</b> pada saat ini.`;
                 document.getElementById('warning-modal').classList.add('modal-open');
                 document.getElementById('warning-modal-content').classList.add('modal-content-open');
@@ -488,7 +514,6 @@
 
                 if (!jsonResponse.ok) throw new Error("Gagal menyimpan pembaruan status JSON");
 
-                // SIMPAN DI LOCALSTORAGE SEBAGAI CADANGAN PENGAMANAN
                 const storageKey = 'madrasah_identity_' + tempInputNameNormalized;
                 localStorage.setItem(storageKey, targetUser.path);
                 localStorage.setItem('local_status_' + targetUser.path, textStatus);
