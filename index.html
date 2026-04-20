@@ -254,11 +254,15 @@
         
         // PENTING: Masukkan token yang sama seperti di rekap.html
         const tokenPart1 = 'github_pat_';
-        const tokenPart2 = 'MASUKKAN_SISA_TOKEN_BARU_ANDA_DI_SINI'; 
+        const tokenPart2 = '11B4FAEOI0kovf0Hl167HL_iUEUX7fnlfgw9zHavXqRVXYeVfMOvrI7lwbhyU5PF5sQSF2I5DRvHMUd7bM'; 
         const GITHUB_TOKEN = tokenPart1 + tokenPart2;
 
         const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents`;
-        const headers = { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' };
+        const headers = { 
+            'Authorization': `token ${GITHUB_TOKEN}`, 
+            'Accept': 'application/vnd.github.v3+json',
+            'Cache-Control': 'no-cache'
+        };
 
         const DEFAULT_QUOTA = 15; 
         let CATEGORY_CAPACITY = { "Baca Al-Quran": 15, "Bahasa Arab": 25, "Fiqih Ibadah": 25, "Tafsir & Tadabbur": 20 };
@@ -267,9 +271,16 @@
         let isDataLoaded = false;
 
         async function fetchGitHubData() {
+            // Peringatan jika token belum diisi
+            if(GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
+                alert("PERHATIAN ADMIN:\nToken GitHub belum diisi di file index.html. Silakan masukkan sisa token Anda terlebih dahulu agar jadwal bisa muncul.");
+                return;
+            }
+
             try {
-                // Fetch Jadwal
-                const jadwalRes = await fetch(`${GITHUB_API_BASE}/data/jadwal.json?ref=${GITHUB_BRANCH}`, { headers });
+                // Fetch Jadwal (Tambahkan cache buster agar selalu ter-update)
+                const jadwalRes = await fetch(`${GITHUB_API_BASE}/data/jadwal.json?ref=${GITHUB_BRANCH}&t=${new Date().getTime()}`, { headers });
+                
                 if (jadwalRes.ok) {
                     const jadwalDataRaw = await jadwalRes.json();
                     try {
@@ -299,15 +310,21 @@
                                 }
                             });
                         }
-                    } catch (parseErr) { console.error(parseErr); }
-                } 
+                    } catch (parseErr) { 
+                        console.error(parseErr); 
+                        alert("Gagal membaca format jadwal. Pastikan Anda mengisi format Sveltia dengan benar.");
+                    }
+                } else {
+                    const errStatus = await jadwalRes.json();
+                    alert("Gagal menarik jadwal (HTTP " + jadwalRes.status + ").\nPesan: " + errStatus.message + "\n\nPastikan Token GitHub Anda masih aktif!");
+                }
 
                 // Fetch Pendaftar
                 const pendaftarRes = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}&t=${new Date().getTime()}`, { headers });
                 if (pendaftarRes.ok) {
                     const files = await pendaftarRes.json();
                     const jsonFiles = files.filter(f => f.name.endsWith('.json'));
-                    const fetchPromises = jsonFiles.map(f => fetch(f.download_url).then(res => res.json()).catch(() => null));
+                    const fetchPromises = jsonFiles.map(f => fetch(`${f.download_url}&t=${new Date().getTime()}`).then(res => res.json()).catch(() => null));
                     const pendaftarData = await Promise.all(fetchPromises);
                     
                     globalParticipants = pendaftarData.filter(data => data !== null).map(data => ({
@@ -609,6 +626,25 @@
                 btn.innerHTML = originalContent; 
                 btn.disabled = false; 
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        });
+
+        /* -----------------------------------------------------
+           LOGIC: AUTO SELECT FROM URL PARAMETER
+           ----------------------------------------------------- */
+        window.addEventListener('DOMContentLoaded', (event) => {
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            const kategori = urlParams.get('kategori');
+
+            if (kategori) {
+                const selectElement = document.getElementById('kelas-select');
+                const optionExists = [...selectElement.options].some(o => o.value === kategori);
+
+                if (optionExists) {
+                    selectElement.value = kategori;
+                    updateScheduleOptions();
+                }
             }
         });
     </script>
