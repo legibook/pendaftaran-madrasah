@@ -191,7 +191,7 @@
 
         const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents`;
         
-        // Header request GitHub (Aman dari CORS)
+        // Header request GitHub
         const headers = { 
             'Authorization': `token ${GITHUB_TOKEN}`, 
             'Accept': 'application/vnd.github.v3+json'
@@ -200,18 +200,16 @@
         const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         let participantsDB = [];
 
-        // Temporary data holders untuk oper data antar function
+        // Temporary data holders
         let tempInputNameNormalized = '';
         let tempInputMonth = '';
         let tempInputYear = 0;
 
-        // Fungsi Anti-Typo Spasi (membuat nama jadi bersih tanpa spasi lebih)
         const normalizeName = (name) => {
             if (!name) return '';
             return name.toLowerCase().replace(/\s+/g, ' ').trim();
         };
 
-        // Fungsi konversi Status "Lunas Bulan Tahun" menjadi Angka Absolut untuk perbandingan akurat
         function getAbsoluteMonths(statusText) {
             if (!statusText || statusText.toLowerCase() === 'belum bayar') return 0;
             const parts = statusText.split(' ');
@@ -219,13 +217,13 @@
                 const mIdx = MONTHS.indexOf(parts[1]);
                 const yNum = parseInt(parts[2]);
                 if (mIdx !== -1 && !isNaN(yNum)) {
-                    return (yNum * 12) + mIdx; // Ubah ke satuan bulan total
+                    return (yNum * 12) + mIdx; 
                 }
             }
             return 0;
         }
 
-        // 1. FETCH SEMUA DATA PESERTA SAAT HALAMAN DIBUKA
+        // 1. FETCH DATA
         async function loadParticipants() {
             if(GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
                 document.getElementById('initial-loading').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Token GitHub belum diatur.';
@@ -234,7 +232,6 @@
             }
 
             try {
-                // Penembus cache URL agar data dari API selalu diusahakan update
                 const cacheBusterUrl = `&t=${new Date().getTime()}`;
                 const res = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}${cacheBusterUrl}`, { headers });
                 
@@ -247,34 +244,28 @@
                     const dlUrl = f.download_url.includes('?') ? `${f.download_url}&t=${new Date().getTime()}` : `${f.download_url}?t=${new Date().getTime()}`;
                     return fetch(dlUrl)
                     .then(r => r.json())
-                    .then(data => ({
-                        path: f.path,
-                        sha: f.sha,
-                        content: data
-                    }))
+                    .then(data => ({ path: f.path, sha: f.sha, content: data }))
                     .catch(() => null);
                 });
                 
                 const allData = await Promise.all(fetchPromises);
                 participantsDB = allData.filter(item => item !== null);
 
-                const loadingEl = document.getElementById('initial-loading');
-                loadingEl.style.display = 'none';
-
+                document.getElementById('initial-loading').style.display = 'none';
                 const btnSubmit = document.getElementById('btn-submit');
                 btnSubmit.disabled = false;
                 btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
 
             } catch (err) {
                 console.error(err);
-                document.getElementById('initial-loading').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Gagal terhubung ke database. Coba muat ulang halaman.';
+                document.getElementById('initial-loading').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Gagal terhubung ke database.';
                 document.getElementById('initial-loading').className = 'bg-rose-50 p-4 flex items-center justify-center gap-3 text-rose-700 text-sm font-medium border-b border-rose-100';
             }
         }
 
         window.addEventListener('DOMContentLoaded', loadParticipants);
 
-        // 2. LOGIC UPLOAD GAMBAR KE BASE64
+        // 2. UPLOAD GAMBAR
         document.getElementById('payment-proof').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if(file) {
@@ -297,7 +288,7 @@
             }
         });
 
-        // 3. INTERCEPT SUBMIT & TANGANI NAMA GANDA
+        // 3. INTERCEPT SUBMIT & NAMA GANDA
         document.getElementById('payment-form').addEventListener('submit', (e) => {
             e.preventDefault();
 
@@ -306,7 +297,6 @@
             tempInputMonth = document.getElementById('month').value;
             tempInputYear = parseInt(document.getElementById('year').value);
             
-            // Cari SEMUA peserta dengan validasi nama yang ketat
             const matches = participantsDB.filter(p => normalizeName(p.content.fullname) === tempInputNameNormalized);
             
             if (matches.length === 0) {
@@ -317,18 +307,16 @@
 
             let targetUser = matches[0];
 
-            // JIKA NAMA GANDA
             if (matches.length > 1) {
                 const storageKey = 'madrasah_identity_' + tempInputNameNormalized;
                 const savedPath = localStorage.getItem(storageKey);
                 const savedMatch = matches.find(m => m.path === savedPath);
 
                 if (savedMatch) {
-                    targetUser = savedMatch; // Browser sudah ingat orang ini
+                    targetUser = savedMatch;
                 } else {
                     const selectEl = document.getElementById('duplicate-select');
                     selectEl.innerHTML = '<option value="" disabled selected>-- Klik Untuk Memilih Identitas --</option>';
-                    
                     matches.forEach((m, idx) => {
                         const opt = document.createElement('option');
                         opt.value = m.path;
@@ -336,14 +324,12 @@
                         opt.textContent = `Kelas: ${m.content.category} | Alamat: ${shortAddress}`;
                         selectEl.appendChild(opt);
                     });
-
                     document.getElementById('duplicate-modal').classList.add('modal-open');
                     document.getElementById('duplicate-modal-content').classList.add('modal-content-open');
                     return; 
                 }
             }
 
-            // Lanjut proses validasi bulan
             processPaymentUpdate(targetUser, tempInputMonth, tempInputYear);
         });
 
@@ -360,59 +346,92 @@
             }
         }
 
-        // 4. LOGIC VALIDASI BULAN & PROSES UPDATE API
+        // 4. LOGIC VALIDASI LAPIS GANDA & PROSES UPDATE API
         async function processPaymentUpdate(targetUser, inputMonthStr, inputYearNum) {
             
-            // a. VALIDASI PEMBAYARAN BERUNTUN (Menangkal Delay API GitHub)
-            // Cek status dari API, dan cek status ingatan dari LocalStorage (jika dia baru bayar 5 detik lalu)
+            // Menggabungkan Status API & LocalStorage agar tidak kena bug "Bayar Berkali-kali"
             const apiStatus = targetUser.content.status_spp || 'Belum Bayar';
             const localStatus = localStorage.getItem('local_status_' + targetUser.path) || 'Belum Bayar';
             
             const apiMonths = getAbsoluteMonths(apiStatus);
             const localMonths = getAbsoluteMonths(localStatus);
-            
-            // Gunakan status yang terupdate (Jika LocalStorage lebih baru, pakai LocalStorage!)
             const effectiveStatus = (localMonths > apiMonths) ? localStatus : apiStatus;
             
-            if (effectiveStatus.trim() !== '' && effectiveStatus.toLowerCase() !== 'belum bayar') {
-                const parts = effectiveStatus.split(' '); // ["Lunas", "Mei", "2026"]
-                if(parts.length >= 3) {
-                    const lastMonthStr = parts[1];
-                    const lastYearNum = parseInt(parts[2]);
+            let lastTotalMonths = 0;
+            let lastMonthStr = "";
+            let lastYearNum = 0;
 
-                    const lastMonthIdx = MONTHS.indexOf(lastMonthStr);
-                    const inputMonthIdx = MONTHS.indexOf(inputMonthStr);
-
-                    if(lastMonthIdx !== -1 && inputMonthIdx !== -1) {
-                        const lastTotalMonths = (lastYearNum * 12) + lastMonthIdx;
-                        const inputTotalMonths = (inputYearNum * 12) + inputMonthIdx;
-                        const diff = inputTotalMonths - lastTotalMonths;
-
-                        if (diff <= 0) {
-                            // Ditolak: Bulan yang dipilih sama atau lebih lama dari pembayaran terakhir
-                            document.getElementById('warning-message').innerHTML = `Pembayaran untuk bulan <b>${inputMonthStr} ${inputYearNum}</b> tidak valid atau <b>sudah dibayar</b>.<br><br>Sistem kami mencatat Anda sudah <b>Lunas hingga ${lastMonthStr} ${lastYearNum}</b>. Silakan pilih bulan setelahnya.`;
-                            document.getElementById('warning-modal').classList.add('modal-open');
-                            document.getElementById('warning-modal-content').classList.add('modal-content-open');
-                            return;
-                        } else if (diff > 1) {
-                            // Ditolak: Loncat Bulan
-                            let missedMonths = [];
-                            for(let i = lastTotalMonths + 1; i < inputTotalMonths; i++) {
-                                let mIdx = i % 12;
-                                let yNum = Math.floor(i / 12);
-                                missedMonths.push(`${MONTHS[mIdx]} ${yNum}`);
-                            }
-                            
-                            document.getElementById('warning-message').innerHTML = `Maaf, Anda melompati urutan bulan. Anda tidak bisa langsung membayar tagihan <b>${inputMonthStr} ${inputYearNum}</b>.<br><br>Status terakhir Anda adalah Lunas <b>${lastMonthStr} ${lastYearNum}</b>. Anda diwajibkan untuk menunaikan tagihan bulan:<br><span class="text-rose-600 font-bold block mt-2">${missedMonths.join('<br>')}</span>`;
-                            document.getElementById('warning-modal').classList.add('modal-open');
-                            document.getElementById('warning-modal-content').classList.add('modal-content-open');
-                            return;
-                        }
-                    }
+            if (effectiveStatus.trim() === '' || effectiveStatus.toLowerCase() === 'belum bayar') {
+                // RULE 1: JIKA BELUM PERNAH BAYAR, AMBIL TANGGAL DIA MENDAFTAR (TIMESTAMP) SEBAGAI TITIK AWAL
+                const regDate = new Date(targetUser.content.timestamp);
+                lastYearNum = regDate.getFullYear();
+                let regMonthIdx = regDate.getMonth();
+                
+                // Atur baseline menjadi 1 bulan sebelum dia mendaftar. 
+                // Agar tagihan pertamanya wajib bulan saat dia mendaftar.
+                if (regMonthIdx === 0) {
+                    lastMonthStr = MONTHS[11];
+                    lastYearNum -= 1;
+                    lastTotalMonths = (lastYearNum * 12) + 11;
+                } else {
+                    lastMonthStr = MONTHS[regMonthIdx - 1];
+                    lastTotalMonths = (lastYearNum * 12) + (regMonthIdx - 1);
+                }
+            } else {
+                // JIKA SUDAH BAYAR, BACA STATUS TERAKHIRNYA
+                const parts = effectiveStatus.split(' '); 
+                if (parts.length >= 3) {
+                    lastMonthStr = parts[1];
+                    lastYearNum = parseInt(parts[2]);
+                    const mIdx = MONTHS.indexOf(lastMonthStr);
+                    lastTotalMonths = (lastYearNum * 12) + mIdx;
                 }
             }
 
-            // b. PROSES UPDATE DATA KE GITHUB
+            const inputMonthIdx = MONTHS.indexOf(inputMonthStr);
+            const inputTotalMonths = (inputYearNum * 12) + inputMonthIdx;
+
+            // CEK VALIDASI 1: MENCEGAH LONCAT BULAN & BAYAR ULANG
+            const diff = inputTotalMonths - lastTotalMonths;
+
+            if (diff <= 0) {
+                document.getElementById('warning-message').innerHTML = `Pembayaran untuk bulan <b>${inputMonthStr} ${inputYearNum}</b> tidak valid atau <b>sudah lunas</b>.<br><br>Sistem mencatat Anda sudah <b>Lunas hingga ${lastMonthStr} ${lastYearNum}</b>. Silakan pilih bulan setelahnya.`;
+                document.getElementById('warning-modal').classList.add('modal-open');
+                document.getElementById('warning-modal-content').classList.add('modal-content-open');
+                return;
+            } else if (diff > 1) {
+                let missedMonths = [];
+                for(let i = lastTotalMonths + 1; i < inputTotalMonths; i++) {
+                    let mIdx = i % 12;
+                    let yNum = Math.floor(i / 12);
+                    missedMonths.push(`${MONTHS[mIdx]} ${yNum}`);
+                }
+                
+                let statusPrefix = (effectiveStatus.toLowerCase() === 'belum bayar')
+                    ? `Anda tercatat <b>Belum Pernah Membayar SPP</b> sejak awal pendaftaran.`
+                    : `Status terakhir Anda adalah Lunas <b>${lastMonthStr} ${lastYearNum}</b>.`;
+
+                document.getElementById('warning-message').innerHTML = `Maaf, Anda melompati urutan bulan. Anda tidak bisa langsung membayar tagihan <b>${inputMonthStr} ${inputYearNum}</b>.<br><br>${statusPrefix} Anda diwajibkan untuk melunasi tagihan bulan-bulan sebelumnya terlebih dahulu:<br><span class="text-rose-600 font-bold block mt-2">${missedMonths.join('<br>')}</span>`;
+                document.getElementById('warning-modal').classList.add('modal-open');
+                document.getElementById('warning-modal-content').classList.add('modal-content-open');
+                return;
+            }
+
+            // CEK VALIDASI 2: MENCEGAH BAYAR TERLALU JAUH KE DEPAN DARI BULAN AKTUAL HARI INI
+            const nowDate = new Date();
+            const nowTotalMonths = (nowDate.getFullYear() * 12) + nowDate.getMonth();
+            
+            // Maksimal pembayaran adalah 1 bulan lebih awal dari bulan berjalan di dunia nyata
+            if (inputTotalMonths > nowTotalMonths + 1) {
+                document.getElementById('warning-message').innerHTML = `Pembayaran terlalu jauh ke depan!<br><br>Bulan aktual saat ini adalah <b>${MONTHS[nowDate.getMonth()]} ${nowDate.getFullYear()}</b>. Anda belum bisa membayar untuk tagihan bulan <b>${inputMonthStr} ${inputYearNum}</b> pada saat ini.`;
+                document.getElementById('warning-modal').classList.add('modal-open');
+                document.getElementById('warning-modal-content').classList.add('modal-content-open');
+                return;
+            }
+
+            // ==============================================
+            // PROSES UPDATE KE GITHUB
+            // ==============================================
             const btn = document.getElementById('btn-submit');
             const originalBtnHtml = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
@@ -420,7 +439,6 @@
             btn.classList.add('opacity-75', 'cursor-not-allowed');
 
             try {
-                // Upload gambar bukti
                 const fileData = document.getElementById('fileData').value;
                 const fileName = document.getElementById('fileName').value;
                 const imagePath = `media/${fileName}`;
@@ -439,7 +457,6 @@
 
                 if (!imgResponse.ok) throw new Error("Gagal mengunggah gambar SPP");
 
-                // Modifikasi & Encode JSON
                 const updatedContent = { ...targetUser.content };
                 const textStatus = `Lunas ${inputMonthStr} ${inputYearNum}`;
                 updatedContent.status_spp = textStatus;
@@ -461,13 +478,9 @@
 
                 if (!jsonResponse.ok) throw new Error("Gagal menyimpan pembaruan status JSON");
 
-                // --- SUKSES ---
-                
-                // Simpan kunci unik ke Browser (Jika nama ganda)
+                // SIMPAN DI LOCALSTORAGE AGAR TIDAK BISA DOUBLE-PAY DALAM WAKTU DEKAT
                 const storageKey = 'madrasah_identity_' + tempInputNameNormalized;
                 localStorage.setItem(storageKey, targetUser.path);
-                
-                // PENTING: Simpan Status Lunas di ingatan Browser untuk mencegah Double-Pay akibat Jeda GitHub
                 localStorage.setItem('local_status_' + targetUser.path, textStatus);
 
                 document.getElementById('success-status-text').innerText = textStatus.toUpperCase();
@@ -483,7 +496,6 @@
             }
         }
 
-        // FUNGSI TUTUP SEMUA MODAL
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('modal-open');
             document.getElementById(modalId + '-content').classList.remove('modal-content-open');
