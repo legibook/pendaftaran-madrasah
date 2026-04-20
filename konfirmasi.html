@@ -111,6 +111,35 @@
     </div>
 
     <!-- ==============================================
+         MODAL: PILIH IDENTITAS (NAMA GANDA)
+         ============================================== -->
+    <div id="duplicate-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 invisible pointer-events-none transition-all duration-300 p-4">
+        <div id="duplicate-modal-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 translate-y-4 transition-all duration-300 p-6 sm:p-8">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl shrink-0">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 leading-tight">Ada Kesamaan Nama!</h3>
+                </div>
+            </div>
+            
+            <p class="text-slate-500 text-sm mb-4">Sistem kami mencatat ada lebih dari satu peserta dengan nama Anda. Mohon pilih identitas/alamat Anda yang benar di bawah ini:</p>
+            
+            <div class="mb-6">
+                <select id="duplicate-select" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition cursor-pointer text-sm">
+                    <!-- Opsi digenerate via JS -->
+                </select>
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="closeModal('duplicate-modal')" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">Batal</button>
+                <button onclick="resumePaymentFromDuplicate()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition shadow-lg shadow-indigo-600/30">Pilih & Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================
          MODAL: PERINGATAN BULAN SALAH (LONCAT / DOUBLE)
          ============================================== -->
     <div id="warning-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 invisible pointer-events-none transition-all duration-300 p-4">
@@ -165,6 +194,10 @@
 
         const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         let participantsDB = [];
+
+        // Temporary data holders untuk oper data antar function
+        let tempInputMonth = '';
+        let tempInputYear = 0;
 
         // 1. FETCH SEMUA DATA PESERTA SAAT HALAMAN DIBUKA
         async function loadParticipants() {
@@ -234,26 +267,78 @@
             }
         });
 
-        // 3. LOGIC SUBMIT FORM & VALIDASI BULANAN
-        document.getElementById('payment-form').addEventListener('submit', async (e) => {
+        // 3. INTERCEPT SUBMIT & TANGANI NAMA GANDA
+        document.getElementById('payment-form').addEventListener('submit', (e) => {
             e.preventDefault();
 
             const inputName = document.getElementById('fullname').value.trim();
-            const inputMonthStr = document.getElementById('month').value;
-            const inputYearNum = parseInt(document.getElementById('year').value);
+            tempInputMonth = document.getElementById('month').value;
+            tempInputYear = parseInt(document.getElementById('year').value);
             
-            // a. VALIDASI NAMA
-            const targetUser = participantsDB.find(p => p.content.fullname.toLowerCase() === inputName.toLowerCase());
-            if (!targetUser) {
+            // Cari SEMUA peserta yang namanya persis sama
+            const matches = participantsDB.filter(p => p.content.fullname.toLowerCase() === inputName.toLowerCase());
+            
+            if (matches.length === 0) {
+                // Tidak ada yang cocok
                 document.getElementById('error-modal').classList.add('modal-open');
                 document.getElementById('error-modal-content').classList.add('modal-content-open');
                 return; 
             }
 
-            // b. VALIDASI PEMBAYARAN BERUNTUN (CEGAH LONCAT/MUNDUR)
+            let targetUser = matches[0];
+
+            // JIKA NAMA GANDA
+            if (matches.length > 1) {
+                // Cek apakah browser sudah pernah mengingat pilihan orang ini via LocalStorage
+                const savedPath = localStorage.getItem('madrasah_saved_identity_path');
+                const savedMatch = matches.find(m => m.path === savedPath);
+
+                if (savedMatch) {
+                    // Browser ingat identitasnya, langsung pakai tanpa nanya!
+                    targetUser = savedMatch;
+                } else {
+                    // Browser tidak ingat / bayar perdana -> Munculkan Modal Pilihan Alamat
+                    const selectEl = document.getElementById('duplicate-select');
+                    selectEl.innerHTML = '';
+                    
+                    matches.forEach((m, idx) => {
+                        const opt = document.createElement('option');
+                        opt.value = m.path;
+                        // Tampilkan Alamat dan Kelas sebagai pembeda
+                        let shortAddress = m.content.address.substring(0, 35) + (m.content.address.length > 35 ? '...' : '');
+                        opt.textContent = `Kelas: ${m.content.category} | Alamat: ${shortAddress}`;
+                        selectEl.appendChild(opt);
+                    });
+
+                    document.getElementById('duplicate-modal').classList.add('modal-open');
+                    document.getElementById('duplicate-modal-content').classList.add('modal-content-open');
+                    return; // Hentikan proses, tunggu tombol dari Modal
+                }
+            }
+
+            // Jika hanya 1 orang ATAU localstorage sudah ketemu, langsung proses
+            processPaymentUpdate(targetUser, tempInputMonth, tempInputYear);
+        });
+
+        // Fungsi Lanjutan jika peserta memilih identitas dari Modal Nama Ganda
+        function resumePaymentFromDuplicate() {
+            const selectedPath = document.getElementById('duplicate-select').value;
+            const targetUser = participantsDB.find(p => p.path === selectedPath);
+            
+            closeModal('duplicate-modal');
+            
+            if(targetUser) {
+                processPaymentUpdate(targetUser, tempInputMonth, tempInputYear);
+            }
+        }
+
+        // 4. LOGIC VALIDASI BULAN & PROSES UPDATE API
+        async function processPaymentUpdate(targetUser, inputMonthStr, inputYearNum) {
+            
+            // a. VALIDASI PEMBAYARAN BERUNTUN (CEGAH LONCAT/MUNDUR)
             const statusSpp = targetUser.content.status_spp || 'Belum Bayar';
             if (statusSpp.toLowerCase() !== 'belum bayar') {
-                const parts = statusSpp.split(' '); // Contoh ["Lunas", "Mei", "2026"]
+                const parts = statusSpp.split(' '); // ["Lunas", "Mei", "2026"]
                 if(parts.length >= 3) {
                     const lastMonthStr = parts[1];
                     const lastYearNum = parseInt(parts[2]);
@@ -262,19 +347,16 @@
                     const inputMonthIdx = MONTHS.indexOf(inputMonthStr);
 
                     if(lastMonthIdx !== -1 && inputMonthIdx !== -1) {
-                        // Kalkulasi index absolut bulan (Tahun * 12 + Bulan)
                         const lastTotalMonths = (lastYearNum * 12) + lastMonthIdx;
                         const inputTotalMonths = (inputYearNum * 12) + inputMonthIdx;
                         const diff = inputTotalMonths - lastTotalMonths;
 
                         if (diff <= 0) {
-                            // Error: Bayar mundur atau dobel di bulan yang sama
                             document.getElementById('warning-message').innerHTML = `Pembayaran untuk bulan <b>${inputMonthStr} ${inputYearNum}</b> tidak valid.<br><br>Status Anda saat ini sudah tercatat <b>Lunas hingga ${lastMonthStr} ${lastYearNum}</b>. Silakan pilih bulan setelahnya.`;
                             document.getElementById('warning-modal').classList.add('modal-open');
                             document.getElementById('warning-modal-content').classList.add('modal-content-open');
                             return;
                         } else if (diff > 1) {
-                            // Error: Loncat bulan
                             let missedMonths = [];
                             for(let i = lastTotalMonths + 1; i < inputTotalMonths; i++) {
                                 let mIdx = i % 12;
@@ -291,7 +373,7 @@
                 }
             }
 
-            // c. PROSES UPDATE DATA KE GITHUB (JIKA LOLOS VALIDASI)
+            // b. PROSES UPDATE DATA KE GITHUB
             const btn = document.getElementById('btn-submit');
             const originalBtnHtml = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
@@ -299,7 +381,7 @@
             btn.classList.add('opacity-75', 'cursor-not-allowed');
 
             try {
-                // Upload gambar bukti SPP baru
+                // Upload gambar bukti
                 const fileData = document.getElementById('fileData').value;
                 const fileName = document.getElementById('fileName').value;
                 const imagePath = `media/${fileName}`;
@@ -318,13 +400,12 @@
 
                 if (!imgResponse.ok) throw new Error("Gagal mengunggah gambar SPP");
 
-                // Modifikasi data JSON lokal
+                // Modifikasi & Encode JSON
                 const updatedContent = { ...targetUser.content };
                 const textStatus = `Lunas ${inputMonthStr} ${inputYearNum}`;
                 updatedContent.status_spp = textStatus;
                 updatedContent.payment_proof = `/${imagePath}`; 
 
-                // Encode JSON dan Update
                 const jsonBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(updatedContent, null, 2))));
                 const jsonPayload = {
                     message: `Update SPP: ${targetUser.content.fullname} -> ${textStatus}`,
@@ -341,7 +422,11 @@
 
                 if (!jsonResponse.ok) throw new Error("Gagal menyimpan pembaruan status JSON");
 
-                // Sukses
+                // --- SUKSES ---
+                
+                // SIMPAN IDENTITAS KE BROWSER AGAR BULAN DEPAN TIDAK NANYA LAGI (JIKA NAMA GANDA)
+                localStorage.setItem('madrasah_saved_identity_path', targetUser.path);
+
                 document.getElementById('success-status-text').innerText = textStatus.toUpperCase();
                 document.getElementById('success-modal').classList.add('modal-open');
                 document.getElementById('success-modal-content').classList.add('modal-content-open');
@@ -353,7 +438,7 @@
                 btn.disabled = false;
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
             }
-        });
+        }
 
         // FUNGSI TUTUP SEMUA MODAL
         function closeModal(modalId) {
