@@ -322,7 +322,7 @@
         // PERINGATAN KEAMANAN: Jangan gunakan token utama Anda di sini. 
         // Buatlah "Fine-grained personal access token" di GitHub yang HANYA memiliki 
         // akses "Read and Write" ke "Contents" untuk repositori ini saja.
-        const GITHUB_TOKEN = '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'; 
+        const GITHUB_TOKEN = 'github_pat_xxxx_token_anda_disini_xxxx'; 
 
         const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents`;
         
@@ -352,24 +352,35 @@
            LOGIC: FETCH DATA DARI GITHUB
            ----------------------------------------------------- */
         async function fetchGitHubData() {
+            console.log("Mencoba mengambil data jadwal dari GitHub..."); // Log tambahan untuk penanda
             try {
                 // 1. Ambil file jadwal.json (Jika Anda sudah membuatnya via Sveltia)
-                try {
-                    const jadwalRes = await fetch(`${GITHUB_API_BASE}/data/jadwal.json?ref=${GITHUB_BRANCH}`, { headers });
-                    if (jadwalRes.ok) {
-                        const jadwalDataRaw = await jadwalRes.json();
-                        const decodedJadwal = JSON.parse(decodeURIComponent(escape(atob(jadwalDataRaw.content))));
+                const jadwalRes = await fetch(`${GITHUB_API_BASE}/data/jadwal.json?ref=${GITHUB_BRANCH}`, { headers });
+                
+                if (jadwalRes.ok) {
+                    const jadwalDataRaw = await jadwalRes.json();
+                    
+                    try {
+                        // Decode Base64 UTF-8 yang jauh lebih tangguh (Anti-Error)
+                        const cleanB64 = jadwalDataRaw.content.replace(/\s/g, '');
+                        const binary = atob(cleanB64);
+                        const bytes = new Uint8Array(binary.length);
+                        for (let i = 0; i < binary.length; i++) {
+                            bytes[i] = binary.charCodeAt(i);
+                        }
+                        const decodedStr = new TextDecoder('utf-8').decode(bytes);
+                        const decodedJadwal = JSON.parse(decodedStr);
                         
                         // Parse JSON Sveltia ke format classData yang dipahami form ini
                         if(decodedJadwal.kelas) {
-                            classData = {};
+                            classData = {}; // Kosongkan data fallback
                             decodedJadwal.kelas.forEach((kls, index) => {
                                 const key = 'kelas_' + index;
                                 classData[key] = {
                                     selectValue: kls.nama,
                                     schedules: { "Laki-laki": [], "Perempuan": [] }
                                 };
-                                if (kls.kuota) CATEGORY_CAPACITY[kls.nama] = kls.kuota;
+                                if (kls.kuota) CATEGORY_CAPACITY[kls.nama] = parseInt(kls.kuota);
                                 
                                 if(kls.schedules) {
                                     kls.schedules.forEach(sch => {
@@ -390,9 +401,13 @@
                                 }
                             });
                         }
+                    } catch (parseErr) {
+                        alert("DEBUG - GAGAL BACA ISI JADWAL:\n" + parseErr.message);
+                        console.error(parseErr);
                     }
-                } catch (e) {
-                    console.log("Jadwal.json dari GitHub belum ada/gagal diakses, menggunakan fallback.");
+                } else {
+                    const errStatus = await jadwalRes.json();
+                    alert("DEBUG - GITHUB API ERROR (Jadwal):\nHTTP " + jadwalRes.status + "\n" + errStatus.message);
                 }
 
                 // 2. Ambil daftar file JSON peserta di folder data/pendaftar/
@@ -421,6 +436,7 @@
                 }
 
             } catch (err) {
+                alert("DEBUG - KONEKSI TERPUTUS:\n" + err.message);
                 console.warn("Gagal memuat data dari GitHub.", err);
             } finally {
                 isDataLoaded = true;
