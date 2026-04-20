@@ -71,16 +71,16 @@ collections:
     format: "json"
     editor:
       preview: false
-    # Tampilan tabel disesuaikan untuk fokus ke Status Bayar
-    summary: 'STATUS: {{status_spp}}  ||  {{fullname}} - ({{schedule}})'
+    # Tampilan tabel disesuaikan untuk menampilkan Status, Nama, KELAS, dan Jadwal
+    summary: 'STATUS: {{status_spp}}  ||  {{fullname}} - {{category}} ({{schedule}})'
     fields:
       # Field Status ditaruh paling atas agar admin langsung melihatnya saat klik peserta
       - {label: "Status SPP (Ketik Bulan Lunas Terakhir)", name: "status_spp", widget: "string", default: "Belum Bayar", hint: "Contoh ketik: Lunas Mei 2026. Ini akan memudahkan Anda melacak tanpa perlu mereset status setiap bulan."}
       
       # Data lainnya ditampilkan sebagai Read-Only agar fokus ke pembayaran saja
       - {label: "Nama Lengkap", name: "fullname", widget: "string"}
-      - {label: "Jadwal Terpilih", name: "schedule", widget: "string"}
       - {label: "Kelas", name: "category", widget: "string"}
+      - {label: "Jadwal Terpilih", name: "schedule", widget: "string"}
       - {label: "WhatsApp", name: "wa", widget: "string"}
       
       # Sisa data disembunyikan di menu ini agar tidak penuh (tapi tidak dihapus dari file)
