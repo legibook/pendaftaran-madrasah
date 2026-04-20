@@ -247,6 +247,16 @@
                 const cacheBusterUrl = `&t=${new Date().getTime()}`;
                 const res = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}${cacheBusterUrl}`, { headers });
                 
+                // PENYELESAIAN BUG: Jika folder kosong (404), biarkan form tetap memuat tanpa error panik.
+                if (res.status === 404) {
+                    participantsDB = [];
+                    document.getElementById('initial-loading').style.display = 'none';
+                    const btnSubmit = document.getElementById('btn-submit');
+                    btnSubmit.disabled = false;
+                    btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+                    return; 
+                }
+
                 if (!res.ok) throw new Error("Gagal mengambil folder pendaftar");
                 
                 const files = await res.json();
