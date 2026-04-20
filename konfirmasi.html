@@ -191,7 +191,7 @@
 
         const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents`;
         
-        // Header request GitHub
+        // Header request GitHub (Aman CORS)
         const headers = { 
             'Authorization': `token ${GITHUB_TOKEN}`, 
             'Accept': 'application/vnd.github.v3+json'
@@ -223,7 +223,7 @@
             return 0;
         }
 
-        // 1. FETCH DATA
+        // 1. FETCH DATA (DENGAN API REAL-TIME PENUH UNTUK MENCEGAH BUG CDN CACHE)
         async function loadParticipants() {
             if(GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
                 document.getElementById('initial-loading').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Token GitHub belum diatur.';
@@ -241,10 +241,23 @@
                 const jsonFiles = files.filter(f => f.name.endsWith('.json'));
                 
                 const fetchPromises = jsonFiles.map(f => {
-                    const dlUrl = f.download_url.includes('?') ? `${f.download_url}&t=${new Date().getTime()}` : `${f.download_url}?t=${new Date().getTime()}`;
-                    return fetch(dlUrl)
+                    // PERBAIKAN KRUSIAL: Menggunakan f.url (API Endpoint), BUKAN f.download_url (CDN).
+                    // Ini memaksa browser menarik data 100% Real-Time dari inti server GitHub.
+                    const apiUrl = f.url.includes('?') ? `${f.url}&t=${new Date().getTime()}` : `${f.url}?t=${new Date().getTime()}`;
+                    
+                    return fetch(apiUrl, { headers })
                     .then(r => r.json())
-                    .then(data => ({ path: f.path, sha: f.sha, content: data }))
+                    .then(apiData => {
+                        // GitHub API mengembalikan konten berwujud Base64, mari kita terjemahkan
+                        const cleanB64 = apiData.content.replace(/\s/g, '');
+                        const binary = atob(cleanB64);
+                        const bytes = new Uint8Array(binary.length);
+                        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                        const decodedStr = new TextDecoder('utf-8').decode(bytes);
+                        const parsedContent = JSON.parse(decodedStr);
+                        
+                        return { path: apiData.path, sha: apiData.sha, content: parsedContent };
+                    })
                     .catch(() => null);
                 });
                 
@@ -349,7 +362,7 @@
         // 4. LOGIC VALIDASI LAPIS GANDA & PROSES UPDATE API
         async function processPaymentUpdate(targetUser, inputMonthStr, inputYearNum) {
             
-            // Menggabungkan Status API & LocalStorage agar tidak kena bug "Bayar Berkali-kali"
+            // Menggabungkan Status API & LocalStorage
             const apiStatus = targetUser.content.status_spp || 'Belum Bayar';
             const localStatus = localStorage.getItem('local_status_' + targetUser.path) || 'Belum Bayar';
             
@@ -362,13 +375,11 @@
             let lastYearNum = 0;
 
             if (effectiveStatus.trim() === '' || effectiveStatus.toLowerCase() === 'belum bayar') {
-                // RULE 1: JIKA BELUM PERNAH BAYAR, AMBIL TANGGAL DIA MENDAFTAR (TIMESTAMP) SEBAGAI TITIK AWAL
+                // RULE 1: JIKA BELUM PERNAH BAYAR, AMBIL TANGGAL DIA MENDAFTAR
                 const regDate = new Date(targetUser.content.timestamp);
                 lastYearNum = regDate.getFullYear();
                 let regMonthIdx = regDate.getMonth();
                 
-                // Atur baseline menjadi 1 bulan sebelum dia mendaftar. 
-                // Agar tagihan pertamanya wajib bulan saat dia mendaftar.
                 if (regMonthIdx === 0) {
                     lastMonthStr = MONTHS[11];
                     lastYearNum -= 1;
@@ -421,7 +432,6 @@
             const nowDate = new Date();
             const nowTotalMonths = (nowDate.getFullYear() * 12) + nowDate.getMonth();
             
-            // Maksimal pembayaran adalah 1 bulan lebih awal dari bulan berjalan di dunia nyata
             if (inputTotalMonths > nowTotalMonths + 1) {
                 document.getElementById('warning-message').innerHTML = `Pembayaran terlalu jauh ke depan!<br><br>Bulan aktual saat ini adalah <b>${MONTHS[nowDate.getMonth()]} ${nowDate.getFullYear()}</b>. Anda belum bisa membayar untuk tagihan bulan <b>${inputMonthStr} ${inputYearNum}</b> pada saat ini.`;
                 document.getElementById('warning-modal').classList.add('modal-open');
@@ -478,7 +488,7 @@
 
                 if (!jsonResponse.ok) throw new Error("Gagal menyimpan pembaruan status JSON");
 
-                // SIMPAN DI LOCALSTORAGE AGAR TIDAK BISA DOUBLE-PAY DALAM WAKTU DEKAT
+                // SIMPAN DI LOCALSTORAGE SEBAGAI CADANGAN PENGAMANAN
                 const storageKey = 'madrasah_identity_' + tempInputNameNormalized;
                 localStorage.setItem(storageKey, targetUser.path);
                 localStorage.setItem('local_status_' + targetUser.path, textStatus);
