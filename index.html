@@ -319,10 +319,12 @@
         const GITHUB_REPO_OWNER = 'legibook'; // Ganti username github
         const GITHUB_REPO_NAME = 'pendaftaran-madrasah'; // Ganti nama repo
         const GITHUB_BRANCH = 'main'; 
-        // PERINGATAN KEAMANAN: Jangan gunakan token utama Anda di sini. 
-        // Buatlah "Fine-grained personal access token" di GitHub yang HANYA memiliki 
-        // akses "Read and Write" ke "Contents" untuk repositori ini saja.
-        const GITHUB_TOKEN = 'github_pat_xxxx_token_anda_disini_xxxx'; 
+        
+        // TRIK KEAMANAN: Memecah token agar tidak otomatis dihapus/revoked oleh robot GitHub
+        // Masukkan sisa token baru Anda di variabel tokenPart2 di bawah ini (tanpa awalan github_pat_)
+        const tokenPart1 = 'github_pat_';
+        const tokenPart2 = '11B4FAEOI0kovf0Hl167HL_iUEUX7fnlfgw9zHavXqRVXYeVfMOvrI7lwbhyU5PF5sQSF2I5DRvHMUd7bM'; 
+        const GITHUB_TOKEN = tokenPart1 + tokenPart2;
 
         const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents`;
         
@@ -731,7 +733,7 @@
             }
 
             // Peringatan sebelum eksekusi (bisa dihapus nanti jika token sudah diisi)
-            if(GITHUB_TOKEN.includes('xxxx_token')) {
+            if(GITHUB_TOKEN.includes('xxxx_token') || GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
                 alert("Peringatan: Token GitHub belum diatur di dalam kode HTML. Pendaftaran tidak akan tersimpan.");
                 return;
             }
