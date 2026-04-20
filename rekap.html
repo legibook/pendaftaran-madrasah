@@ -293,7 +293,7 @@
         }
 
         // ==========================================
-        // 1. FETCH DATA DARI GITHUB
+        // 1. FETCH DATA DARI GITHUB (DENGAN API REAL-TIME)
         // ==========================================
         async function fetchGitHubData() {
             if(GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
@@ -333,18 +333,39 @@
                     }
                 }
 
-                // Fetch Pendaftar
+                // Fetch Pendaftar (Menggunakan API Endpoint Real-Time, BUKAN CDN download_url)
                 const pendaftarRes = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}${cacheBusterUrl}`, { headers });
                 globalParticipants = [];
+                
+                // Mencegah error jika folder kosong (tidak ada pendaftar sama sekali)
+                if (pendaftarRes.status === 404) {
+                    indicator.innerHTML = '<i class="fas fa-check-circle"></i> Data Terkini (Kosong)';
+                    indicator.className = 'flex items-center gap-2 text-sm font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200';
+                    document.getElementById('dashboard-container').classList.remove('hidden');
+                    return; 
+                }
+
                 if (pendaftarRes.ok) {
                     const files = await pendaftarRes.json();
                     const jsonFiles = files.filter(f => f.name.endsWith('.json'));
-                    const fetchPromises = jsonFiles.map(f => {
-                        const dlUrl = f.download_url.includes('?') ? `${f.download_url}&t=${new Date().getTime()}` : `${f.download_url}?t=${new Date().getTime()}`;
-                        return fetch(dlUrl).then(res => res.json()).catch(() => null);
-                    });
-                    const pendaftarData = await Promise.all(fetchPromises);
                     
+                    // PERBAIKAN: Menggunakan f.url (API Endpoint) agar terjamin 100% Real-Time
+                    const fetchPromises = jsonFiles.map(f => {
+                        const apiUrl = f.url.includes('?') ? `${f.url}&t=${new Date().getTime()}` : `${f.url}?t=${new Date().getTime()}`;
+                        return fetch(apiUrl, { headers })
+                        .then(r => r.json())
+                        .then(apiData => {
+                            const cleanB64 = apiData.content.replace(/\s/g, '');
+                            const binary = atob(cleanB64);
+                            const bytes = new Uint8Array(binary.length);
+                            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                            const decodedStr = new TextDecoder('utf-8').decode(bytes);
+                            return JSON.parse(decodedStr);
+                        })
+                        .catch(() => null);
+                    });
+                    
+                    const pendaftarData = await Promise.all(fetchPromises);
                     globalParticipants = pendaftarData.filter(data => data !== null);
                 }
 
@@ -425,7 +446,7 @@
             participants.sort((a, b) => a.fullname.localeCompare(b.fullname));
 
             participants.forEach(p => {
-                // Gunakan fungsi Evaluasi Pintar
+                // Gunakan fungsi Evaluasi Pintar (Mempertimbangkan Bulan Aktual dan PENGATURAN_MULAI_KELAS)
                 const statusInfo = evaluatePaymentStatus(p);
                 const isLunas = statusInfo.isLunas;
                 const displayStatusText = statusInfo.text;
