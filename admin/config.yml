@@ -1,9 +1,8 @@
 backend:
   name: github
-  repo: legibook/pendaftaran-madrasah # UBAH INI dengan nama repo Anda
-  branch: main # Atau master
+  repo: legibook/pendaftaran-madrasah
+  branch: main
 
-# Konfigurasi Media (Tempat foto bukti bayar disimpan)
 media_folder: "media"
 public_folder: "/media"
 
@@ -34,16 +33,15 @@ collections:
                   - {label: "Waktu (Pisahkan dengan koma jika banyak)", name: "times", widget: "string"}
 
   # ----------------------------------------
-  # MENU 2: DATA PENDAFTAR (TAMPILAN TABEL)
+  # MENU 2: DATA PENDAFTAR (Fokus Profil)
   # ----------------------------------------
   - name: "pendaftar"
     label: "👥 Data Pendaftar"
     folder: "data/pendaftar"
-    create: false # False karena data masuk otomatis dari formulir, bukan diketik admin
+    create: false 
     slug: "{{year}}{{month}}{{day}}-{{slug}}"
     extension: "json"
     format: "json"
-    # Ini yang membuat tampilan Sveltia menjadi tabel rapi
     editor:
       preview: false
     summary: '{{timestamp}} | {{fullname}} - {{category}} ({{gender}})'
@@ -57,5 +55,38 @@ collections:
       - {label: "Kelas Terpilih", name: "category", widget: "string"}
       - {label: "Jadwal Terpilih", name: "schedule", widget: "string"}
       - {label: "Kemampuan Baca", name: "ability", widget: "string"}
-      # Ini akan menampilkan gambar (Bukti Pembayaran) di CMS
-      - {label: "Bukti Pembayaran", name: "payment_proof", widget: "image"}
+      - {label: "Bukti Pembayaran Awal", name: "payment_proof", widget: "image"}
+      # Field tersembunyi agar tidak hilang saat di-save dari menu ini
+      - {label: "Status SPP Bulanan", name: "status_spp", widget: "hidden", required: false, default: "Belum Bayar"}
+
+  # ----------------------------------------
+  # MENU 3: STATUS PEMBAYARAN (Baru)
+  # ----------------------------------------
+  - name: "pembayaran"
+    label: "💳 Status Pembayaran"
+    folder: "data/pendaftar"
+    create: false 
+    slug: "{{year}}{{month}}{{day}}-{{slug}}"
+    extension: "json"
+    format: "json"
+    editor:
+      preview: false
+    # Tampilan tabel disesuaikan untuk fokus ke Status Bayar
+    summary: 'STATUS: {{status_spp}}  ||  {{fullname}} - ({{schedule}})'
+    fields:
+      # Field Status ditaruh paling atas agar admin langsung melihatnya saat klik peserta
+      - {label: "Status SPP (Ketik Bulan Lunas Terakhir)", name: "status_spp", widget: "string", default: "Belum Bayar", hint: "Contoh ketik: Lunas Mei 2026. Ini akan memudahkan Anda melacak tanpa perlu mereset status setiap bulan."}
+      
+      # Data lainnya ditampilkan sebagai Read-Only agar fokus ke pembayaran saja
+      - {label: "Nama Lengkap", name: "fullname", widget: "string"}
+      - {label: "Jadwal Terpilih", name: "schedule", widget: "string"}
+      - {label: "Kelas", name: "category", widget: "string"}
+      - {label: "WhatsApp", name: "wa", widget: "string"}
+      
+      # Sisa data disembunyikan di menu ini agar tidak penuh (tapi tidak dihapus dari file)
+      - {label: "Waktu Daftar", name: "timestamp", widget: "hidden"}
+      - {label: "Nama Panggilan", name: "nickname", widget: "hidden"}
+      - {label: "Jenis Kelamin", name: "gender", widget: "hidden"}
+      - {label: "Alamat", name: "address", widget: "hidden"}
+      - {label: "Kemampuan Baca", name: "ability", widget: "hidden"}
+      - {label: "Bukti Pembayaran Awal", name: "payment_proof", widget: "hidden"}
