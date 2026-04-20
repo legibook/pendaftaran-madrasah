@@ -1,0 +1,61 @@
+backend:
+  name: github
+  repo: legibook/pendaftaran-madrasah # UBAH INI dengan nama repo Anda
+  branch: main # Atau master
+
+# Konfigurasi Media (Tempat foto bukti bayar disimpan)
+media_folder: "media"
+public_folder: "/media"
+
+collections:
+  # ----------------------------------------
+  # MENU 1: JADWAL KURSUS
+  # ----------------------------------------
+  - name: "jadwal"
+    label: "📅 Jadwal & Kuota"
+    files:
+      - file: "data/jadwal.json"
+        label: "Pengaturan Jadwal"
+        name: "jadwal_data"
+        fields:
+          - {label: "Kapasitas Default (Jika tidak diatur di kelas)", name: "default_quota", widget: "number", default: 15}
+          - label: "Daftar Kelas"
+            name: "kelas"
+            widget: "list"
+            fields:
+              - {label: "Nama Kelas", name: "nama", widget: "string"}
+              - {label: "Kuota Khusus", name: "kuota", widget: "number", required: false}
+              - label: "Opsi Jadwal"
+                name: "schedules"
+                widget: "list"
+                fields:
+                  - {label: "Gender", name: "gender", widget: "select", options: ["Laki-laki", "Perempuan"]}
+                  - {label: "Tipe", name: "type", widget: "select", options: ["Online", "Offline"]}
+                  - {label: "Waktu (Pisahkan dengan koma jika banyak)", name: "times", widget: "string"}
+
+  # ----------------------------------------
+  # MENU 2: DATA PENDAFTAR (TAMPILAN TABEL)
+  # ----------------------------------------
+  - name: "pendaftar"
+    label: "👥 Data Pendaftar"
+    folder: "data/pendaftar"
+    create: false # False karena data masuk otomatis dari formulir, bukan diketik admin
+    slug: "{{year}}{{month}}{{day}}-{{slug}}"
+    extension: "json"
+    format: "json"
+    # Ini yang membuat tampilan Sveltia menjadi tabel rapi
+    editor:
+      preview: false
+    summary: '{{timestamp}} | {{fullname}} - {{category}} ({{gender}})'
+    fields:
+      - {label: "Waktu Daftar", name: "timestamp", widget: "datetime", format: "YYYY-MM-DD HH:mm:ss"}
+      - {label: "Nama Lengkap", name: "fullname", widget: "string"}
+      - {label: "Nama Panggilan", name: "nickname", widget: "string"}
+      - {label: "Jenis Kelamin", name: "gender", widget: "string"}
+      - {label: "WhatsApp", name: "wa", widget: "string"}
+      - {label: "Alamat", name: "address", widget: "text"}
+      - {label: "Kelas Terpilih", name: "category", widget: "string"}
+      - {label: "Jadwal Terpilih", name: "schedule", widget: "string"}
+      - {label: "Kemampuan Baca", name: "ability", widget: "string"}
+      # Ini akan menampilkan gambar (Bukti Pembayaran) di CMS
+      - {label: "Bukti Pembayaran", name: "payment_proof", widget: "image"}
