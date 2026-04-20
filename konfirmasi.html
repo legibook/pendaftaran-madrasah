@@ -191,7 +191,7 @@
 
         const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents`;
         
-        // PERBAIKAN PENTING: Cache-Control dihapus agar tidak bentrok dengan CORS (Keamanan Browser)
+        // Header request GitHub (Aman dari CORS)
         const headers = { 
             'Authorization': `token ${GITHUB_TOKEN}`, 
             'Accept': 'application/vnd.github.v3+json'
@@ -211,6 +211,20 @@
             return name.toLowerCase().replace(/\s+/g, ' ').trim();
         };
 
+        // Fungsi konversi Status "Lunas Bulan Tahun" menjadi Angka Absolut untuk perbandingan akurat
+        function getAbsoluteMonths(statusText) {
+            if (!statusText || statusText.toLowerCase() === 'belum bayar') return 0;
+            const parts = statusText.split(' ');
+            if (parts.length >= 3) {
+                const mIdx = MONTHS.indexOf(parts[1]);
+                const yNum = parseInt(parts[2]);
+                if (mIdx !== -1 && !isNaN(yNum)) {
+                    return (yNum * 12) + mIdx; // Ubah ke satuan bulan total
+                }
+            }
+            return 0;
+        }
+
         // 1. FETCH SEMUA DATA PESERTA SAAT HALAMAN DIBUKA
         async function loadParticipants() {
             if(GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
@@ -220,7 +234,7 @@
             }
 
             try {
-                // Menggunakan penembus cache URL agar data dari API selalu update
+                // Penembus cache URL agar data dari API selalu diusahakan update
                 const cacheBusterUrl = `&t=${new Date().getTime()}`;
                 const res = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}${cacheBusterUrl}`, { headers });
                 
@@ -230,7 +244,6 @@
                 const jsonFiles = files.filter(f => f.name.endsWith('.json'));
                 
                 const fetchPromises = jsonFiles.map(f => {
-                    // Cek apakah URL asli sudah punya parameter ?, jika belum pakai ?, jika sudah pakai &
                     const dlUrl = f.download_url.includes('?') ? `${f.download_url}&t=${new Date().getTime()}` : `${f.download_url}?t=${new Date().getTime()}`;
                     return fetch(dlUrl)
                     .then(r => r.json())
@@ -293,7 +306,7 @@
             tempInputMonth = document.getElementById('month').value;
             tempInputYear = parseInt(document.getElementById('year').value);
             
-            // Cari SEMUA peserta dengan validasi nama yang sangat ketat (Anti-Spasi Typo)
+            // Cari SEMUA peserta dengan validasi nama yang ketat
             const matches = participantsDB.filter(p => normalizeName(p.content.fullname) === tempInputNameNormalized);
             
             if (matches.length === 0) {
@@ -306,18 +319,14 @@
 
             // JIKA NAMA GANDA
             if (matches.length > 1) {
-                // Kunci penyimpanan LocalStorage kini menggunakan nama si pengguna
                 const storageKey = 'madrasah_identity_' + tempInputNameNormalized;
                 const savedPath = localStorage.getItem(storageKey);
                 const savedMatch = matches.find(m => m.path === savedPath);
 
                 if (savedMatch) {
-                    // Browser sangat yakin ini orang yang tepat
-                    targetUser = savedMatch;
+                    targetUser = savedMatch; // Browser sudah ingat orang ini
                 } else {
-                    // Munculkan Modal Pilihan Alamat
                     const selectEl = document.getElementById('duplicate-select');
-                    // Wajibkan mereka memilih
                     selectEl.innerHTML = '<option value="" disabled selected>-- Klik Untuk Memilih Identitas --</option>';
                     
                     matches.forEach((m, idx) => {
@@ -334,23 +343,18 @@
                 }
             }
 
-            // Langsung eksekusi jika tunggal atau cache memori cocok
+            // Lanjut proses validasi bulan
             processPaymentUpdate(targetUser, tempInputMonth, tempInputYear);
         });
 
-        // Fungsi Lanjutan jika peserta memilih identitas dari Modal Nama Ganda
         function resumePaymentFromDuplicate() {
             const selectedPath = document.getElementById('duplicate-select').value;
-            
-            // Validasi: Cegah lanjut jika peserta belum nge-klik apa-apa
             if (!selectedPath) {
                 alert("Mohon klik dan pilih identitas Anda di menu kotak terlebih dahulu!");
                 return;
             }
-
             const targetUser = participantsDB.find(p => p.path === selectedPath);
             closeModal('duplicate-modal');
-            
             if(targetUser) {
                 processPaymentUpdate(targetUser, tempInputMonth, tempInputYear);
             }
@@ -359,10 +363,19 @@
         // 4. LOGIC VALIDASI BULAN & PROSES UPDATE API
         async function processPaymentUpdate(targetUser, inputMonthStr, inputYearNum) {
             
-            // a. VALIDASI PEMBAYARAN BERUNTUN (CEGAH LONCAT/MUNDUR)
-            const statusSpp = targetUser.content.status_spp || 'Belum Bayar';
-            if (statusSpp.trim() !== '' && statusSpp.toLowerCase() !== 'belum bayar') {
-                const parts = statusSpp.split(' '); // ["Lunas", "Mei", "2026"]
+            // a. VALIDASI PEMBAYARAN BERUNTUN (Menangkal Delay API GitHub)
+            // Cek status dari API, dan cek status ingatan dari LocalStorage (jika dia baru bayar 5 detik lalu)
+            const apiStatus = targetUser.content.status_spp || 'Belum Bayar';
+            const localStatus = localStorage.getItem('local_status_' + targetUser.path) || 'Belum Bayar';
+            
+            const apiMonths = getAbsoluteMonths(apiStatus);
+            const localMonths = getAbsoluteMonths(localStatus);
+            
+            // Gunakan status yang terupdate (Jika LocalStorage lebih baru, pakai LocalStorage!)
+            const effectiveStatus = (localMonths > apiMonths) ? localStatus : apiStatus;
+            
+            if (effectiveStatus.trim() !== '' && effectiveStatus.toLowerCase() !== 'belum bayar') {
+                const parts = effectiveStatus.split(' '); // ["Lunas", "Mei", "2026"]
                 if(parts.length >= 3) {
                     const lastMonthStr = parts[1];
                     const lastYearNum = parseInt(parts[2]);
@@ -376,11 +389,13 @@
                         const diff = inputTotalMonths - lastTotalMonths;
 
                         if (diff <= 0) {
-                            document.getElementById('warning-message').innerHTML = `Pembayaran untuk bulan <b>${inputMonthStr} ${inputYearNum}</b> tidak valid.<br><br>Status Anda saat ini sudah tercatat <b>Lunas hingga ${lastMonthStr} ${lastYearNum}</b>. Silakan pilih bulan setelahnya.`;
+                            // Ditolak: Bulan yang dipilih sama atau lebih lama dari pembayaran terakhir
+                            document.getElementById('warning-message').innerHTML = `Pembayaran untuk bulan <b>${inputMonthStr} ${inputYearNum}</b> tidak valid atau <b>sudah dibayar</b>.<br><br>Sistem kami mencatat Anda sudah <b>Lunas hingga ${lastMonthStr} ${lastYearNum}</b>. Silakan pilih bulan setelahnya.`;
                             document.getElementById('warning-modal').classList.add('modal-open');
                             document.getElementById('warning-modal-content').classList.add('modal-content-open');
                             return;
                         } else if (diff > 1) {
+                            // Ditolak: Loncat Bulan
                             let missedMonths = [];
                             for(let i = lastTotalMonths + 1; i < inputTotalMonths; i++) {
                                 let mIdx = i % 12;
@@ -448,9 +463,12 @@
 
                 // --- SUKSES ---
                 
-                // Simpan kunci unik ke Browser! Key digabung dengan nama pendaftar agar spesifik.
+                // Simpan kunci unik ke Browser (Jika nama ganda)
                 const storageKey = 'madrasah_identity_' + tempInputNameNormalized;
                 localStorage.setItem(storageKey, targetUser.path);
+                
+                // PENTING: Simpan Status Lunas di ingatan Browser untuk mencegah Double-Pay akibat Jeda GitHub
+                localStorage.setItem('local_status_' + targetUser.path, textStatus);
 
                 document.getElementById('success-status-text').innerText = textStatus.toUpperCase();
                 document.getElementById('success-modal').classList.add('modal-open');
