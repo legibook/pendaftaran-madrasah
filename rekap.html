@@ -68,51 +68,113 @@
         <!-- Dashboard Content -->
         <div id="dashboard-container" class="hidden animate-[fadeIn_0.5s_ease-out]">
             
-            <!-- Summary Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 text-emerald-600"><i class="fas fa-users fa-4x"></i></div>
-                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Pendaftar Kelas Ini</p>
-                    <h3 id="stat-total" class="text-4xl font-black text-slate-800">0</h3>
+            <!-- TABS NAVIGASI -->
+            <div class="flex border-b border-slate-200 mb-6 gap-2">
+                <button id="tab-btn-jadwal" onclick="switchTab('jadwal')" class="px-6 py-3 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 transition flex items-center gap-2">
+                    <i class="fas fa-calendar-alt"></i> Rekap Jadwal
+                </button>
+                <button id="tab-btn-pembayaran" onclick="switchTab('pembayaran')" class="px-6 py-3 text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-emerald-600 hover:border-emerald-300 transition flex items-center gap-2">
+                    <i class="fas fa-money-bill-wave"></i> Status Pembayaran
+                </button>
+            </div>
+
+            <!-- TAB 1: KONTEN REKAP JADWAL (EXISTING) -->
+            <div id="content-jadwal" class="animate-[fadeIn_0.3s_ease-out]">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 text-emerald-600"><i class="fas fa-users fa-4x"></i></div>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Pendaftar Kelas Ini</p>
+                        <h3 id="stat-total" class="text-4xl font-black text-slate-800">0</h3>
+                    </div>
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 text-blue-600"><i class="fas fa-mars fa-4x"></i></div>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Ikhwan (Laki-laki)</p>
+                        <h3 id="stat-ikhwan" class="text-4xl font-black text-slate-800">0</h3>
+                    </div>
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 text-pink-600"><i class="fas fa-venus fa-4x"></i></div>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Akhwat (Perempuan)</p>
+                        <h3 id="stat-akhwat" class="text-4xl font-black text-slate-800">0</h3>
+                    </div>
                 </div>
-                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 text-blue-600"><i class="fas fa-mars fa-4x"></i></div>
-                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Ikhwan (Laki-laki)</p>
-                    <h3 id="stat-ikhwan" class="text-4xl font-black text-slate-800">0</h3>
+
+                <!-- TABEL IKHWAN DINAMIS -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+                    <div class="bg-blue-50 border-b border-blue-100 p-4 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center"><i class="fas fa-mars"></i></div>
+                        <h2 class="font-bold text-blue-900 text-lg">Rekap Jadwal Ikhwan</h2>
+                    </div>
+                    <!-- Tempat Tabel Generate JS -->
+                    <div id="container-ikhwan"></div>
                 </div>
-                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 text-pink-600"><i class="fas fa-venus fa-4x"></i></div>
-                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Akhwat (Perempuan)</p>
-                    <h3 id="stat-akhwat" class="text-4xl font-black text-slate-800">0</h3>
+
+                <!-- TABEL AKHWAT DINAMIS -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+                    <div class="bg-pink-50 border-b border-pink-100 p-4 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-pink-600 text-white flex items-center justify-center"><i class="fas fa-venus"></i></div>
+                        <h2 class="font-bold text-pink-900 text-lg">Rekap Jadwal Akhwat</h2>
+                    </div>
+                    <!-- Tempat Tabel Generate JS -->
+                    <div id="container-akhwat"></div>
+                </div>
+                
+                <!-- Legend -->
+                <div class="flex gap-4 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-10">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2">Keterangan:</span>
+                    <div class="flex items-center gap-2 text-sm"><div class="w-4 h-4 rounded bg-emerald-100 border border-emerald-300"></div> Kelas Dibuka (Tersedia)</div>
+                    <div class="flex items-center gap-2 text-sm"><div class="w-4 h-4 rounded bg-red-100 border border-red-300"></div> Kelas Penuh</div>
+                    <div class="flex items-center gap-2 text-sm"><div class="w-4 h-4 rounded bg-slate-100 border border-slate-200"></div> Tidak Ada Jadwal</div>
                 </div>
             </div>
 
-            <!-- TABEL IKHWAN DINAMIS -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-                <div class="bg-blue-50 border-b border-blue-100 p-4 flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center"><i class="fas fa-mars"></i></div>
-                    <h2 class="font-bold text-blue-900 text-lg">Rekap Jadwal Ikhwan</h2>
-                </div>
-                <!-- Tempat Tabel Generate JS -->
-                <div id="container-ikhwan"></div>
-            </div>
+            <!-- TAB 2: KONTEN STATUS PEMBAYARAN (BARU) -->
+            <div id="content-pembayaran" class="hidden animate-[fadeIn_0.3s_ease-out]">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+                    
+                    <!-- Card Belum Bayar -->
+                    <div class="bg-white rounded-2xl border border-rose-200 shadow-sm overflow-hidden flex flex-col">
+                        <div class="bg-rose-50 border-b border-rose-100 p-4 flex justify-between items-center shrink-0">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-rose-500 text-white flex items-center justify-center"><i class="fas fa-times-circle"></i></div>
+                                <h2 class="font-bold text-rose-900 text-lg">Belum Bayar</h2>
+                            </div>
+                            <span id="badge-count-belum" class="bg-rose-200 text-rose-800 font-bold px-3 py-1 rounded-full text-sm">0</span>
+                        </div>
+                        <div class="overflow-x-auto flex-1 bg-white">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                                    <tr><th class="p-4 w-12">No</th><th class="p-4">Nama Peserta</th><th class="p-4">Jadwal</th><th class="p-4 w-12 text-center">WA</th></tr>
+                                </thead>
+                                <tbody id="tbody-belum" class="divide-y divide-slate-100">
+                                    <!-- Diisi JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-            <!-- TABEL AKHWAT DINAMIS -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-                <div class="bg-pink-50 border-b border-pink-100 p-4 flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-pink-600 text-white flex items-center justify-center"><i class="fas fa-venus"></i></div>
-                    <h2 class="font-bold text-pink-900 text-lg">Rekap Jadwal Akhwat</h2>
+                    <!-- Card Sudah Lunas -->
+                    <div class="bg-white rounded-2xl border border-emerald-200 shadow-sm overflow-hidden flex flex-col">
+                        <div class="bg-emerald-50 border-b border-emerald-100 p-4 flex justify-between items-center shrink-0">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center"><i class="fas fa-check-circle"></i></div>
+                                <h2 class="font-bold text-emerald-900 text-lg">Sudah Lunas</h2>
+                            </div>
+                            <span id="badge-count-lunas" class="bg-emerald-200 text-emerald-800 font-bold px-3 py-1 rounded-full text-sm">0</span>
+                        </div>
+                        <div class="overflow-x-auto flex-1 bg-white">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                                    <tr><th class="p-4 w-12">No</th><th class="p-4">Nama Peserta</th><th class="p-4">Status / Bulan</th><th class="p-4 w-12 text-center">WA</th></tr>
+                                </thead>
+                                <tbody id="tbody-lunas" class="divide-y divide-slate-100">
+                                    <!-- Diisi JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
-                <!-- Tempat Tabel Generate JS -->
-                <div id="container-akhwat"></div>
-            </div>
-            
-            <!-- Legend -->
-            <div class="flex gap-4 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-10">
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2">Keterangan:</span>
-                <div class="flex items-center gap-2 text-sm"><div class="w-4 h-4 rounded bg-emerald-100 border border-emerald-300"></div> Kelas Dibuka (Tersedia)</div>
-                <div class="flex items-center gap-2 text-sm"><div class="w-4 h-4 rounded bg-red-100 border border-red-300"></div> Kelas Penuh</div>
-                <div class="flex items-center gap-2 text-sm"><div class="w-4 h-4 rounded bg-slate-100 border border-slate-200"></div> Tidak Ada Jadwal</div>
             </div>
 
         </div>
@@ -254,8 +316,9 @@
             const classData = rawJadwalData.find(k => k.nama === selectedClass);
             const currentQuota = CATEGORY_CAPACITY[selectedClass] || DEFAULT_QUOTA;
 
-            // Update Statistik
             const classParticipants = globalParticipants.filter(p => p.category === selectedClass);
+            
+            // Render Tab 1 (Jadwal)
             const ikhwanCount = classParticipants.filter(p => p.gender === 'Laki-laki').length;
             const akhwatCount = classParticipants.filter(p => p.gender === 'Perempuan').length;
 
@@ -263,10 +326,106 @@
             document.getElementById('stat-ikhwan').innerText = ikhwanCount;
             document.getElementById('stat-akhwat').innerText = akhwatCount;
 
-            // Render Tabel Ikhwan & Akhwat secara Dinamis
             renderDynamicTable('Laki-laki', classData, classParticipants, currentQuota, 'container-ikhwan');
             renderDynamicTable('Perempuan', classData, classParticipants, currentQuota, 'container-akhwat');
+
+            // Render Tab 2 (Status Pembayaran)
+            renderPaymentTable(classParticipants);
         }
+
+        // FUNGSI SWITCH TAB
+        function switchTab(tabName) {
+            const contentJadwal = document.getElementById('content-jadwal');
+            const contentPembayaran = document.getElementById('content-pembayaran');
+            const btnJadwal = document.getElementById('tab-btn-jadwal');
+            const btnPembayaran = document.getElementById('tab-btn-pembayaran');
+
+            if (tabName === 'jadwal') {
+                contentJadwal.classList.remove('hidden');
+                contentPembayaran.classList.add('hidden');
+                
+                btnJadwal.className = "px-6 py-3 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 transition flex items-center gap-2";
+                btnPembayaran.className = "px-6 py-3 text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-emerald-600 hover:border-emerald-300 transition flex items-center gap-2";
+            } else {
+                contentJadwal.classList.add('hidden');
+                contentPembayaran.classList.remove('hidden');
+                
+                btnPembayaran.className = "px-6 py-3 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 transition flex items-center gap-2";
+                btnJadwal.className = "px-6 py-3 text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-emerald-600 hover:border-emerald-300 transition flex items-center gap-2";
+            }
+        }
+
+        // FUNGSI RENDER TABEL PEMBAYARAN (TAB 2)
+        function renderPaymentTable(participants) {
+            const tbodyLunas = document.getElementById('tbody-lunas');
+            const tbodyBelum = document.getElementById('tbody-belum');
+            
+            tbodyLunas.innerHTML = '';
+            tbodyBelum.innerHTML = '';
+            
+            let countLunas = 0;
+            let countBelum = 0;
+
+            // Urutkan abjad berdasarkan nama
+            participants.sort((a, b) => a.fullname.localeCompare(b.fullname));
+
+            participants.forEach(p => {
+                const statusText = p.status_spp || 'Belum Bayar';
+                const isLunas = statusText.toLowerCase() !== 'belum bayar';
+                const waNumber = p.wa ? p.wa.replace(/^0/, '62') : '';
+                const genderLabel = p.gender === 'Laki-laki' ? 'Ikhwan' : 'Akhwat';
+                
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100 last:border-0";
+                
+                if (isLunas) {
+                    countLunas++;
+                    tr.innerHTML = `
+                        <td class="p-4 text-slate-600 font-medium text-center">${countLunas}</td>
+                        <td class="p-4">
+                            <p class="font-bold text-slate-800">${p.fullname}</p>
+                            <p class="text-xs text-slate-500">${genderLabel}</p>
+                        </td>
+                        <td class="p-4">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold tracking-wide">
+                                <i class="fas fa-check-circle mr-1.5 text-emerald-600"></i>${statusText}
+                            </span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <a href="https://wa.me/${waNumber}" target="_blank" title="Chat WA" class="inline-flex w-8 h-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white transition">
+                                <i class="fab fa-whatsapp text-lg"></i>
+                            </a>
+                        </td>
+                    `;
+                    tbodyLunas.appendChild(tr);
+                } else {
+                    countBelum++;
+                    tr.innerHTML = `
+                        <td class="p-4 text-slate-600 font-medium text-center">${countBelum}</td>
+                        <td class="p-4">
+                            <p class="font-bold text-slate-800">${p.fullname}</p>
+                            <p class="text-xs text-slate-500">${genderLabel}</p>
+                        </td>
+                        <td class="p-4">
+                            <p class="text-xs text-slate-600 max-w-[150px] truncate" title="${p.schedule}">${p.schedule}</p>
+                        </td>
+                        <td class="p-4 text-center">
+                            <a href="https://wa.me/${waNumber}" target="_blank" title="Tagih via WA" class="inline-flex w-8 h-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white transition">
+                                <i class="fab fa-whatsapp text-lg"></i>
+                            </a>
+                        </td>
+                    `;
+                    tbodyBelum.appendChild(tr);
+                }
+            });
+
+            if(countLunas === 0) tbodyLunas.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Belum ada peserta yang lunas di kelas ini.</td></tr>`;
+            if(countBelum === 0) tbodyBelum.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Alhamdulillah, tidak ada yang menunggak bayaran.</td></tr>`;
+            
+            document.getElementById('badge-count-lunas').innerText = countLunas;
+            document.getElementById('badge-count-belum').innerText = countBelum;
+        }
+
 
         function renderDynamicTable(gender, classData, participants, quota, containerId) {
             const container = document.getElementById(containerId);
@@ -387,7 +546,7 @@
         }
 
         // ==========================================
-        // 3. POP-UP DETAIL PESERTA
+        // 3. POP-UP DETAIL PESERTA (DIPERBARUI)
         // ==========================================
         function showDetailModal(scheduleStr, gender) {
             const selectedClass = document.getElementById('filter-kelas').value;
@@ -423,24 +582,25 @@
                 enrolled.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
 
                 enrolled.forEach((p, idx) => {
-                    // Ambil bukti bayar untuk thumbnail jika ada
-                    const hasProof = p.payment_proof && p.payment_proof.length > 5;
-                    const proofIcon = hasProof ? `<i class="fas fa-image text-emerald-500" title="Ada Bukti Bayar"></i>` : '';
+                    // Cek Status Pembayaran
+                    const statusText = p.status_spp || 'Belum Bayar';
+                    const isLunas = statusText.toLowerCase() !== 'belum bayar';
+                    const statusBadge = isLunas 
+                        ? `<span class="inline-flex items-center px-2 py-0.5 mt-1.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] font-bold tracking-wide"><i class="fas fa-check-circle mr-1"></i>${statusText}</span>`
+                        : `<span class="inline-flex items-center px-2 py-0.5 mt-1.5 rounded bg-rose-100 text-rose-700 border border-rose-200 text-[10px] font-bold tracking-wide"><i class="fas fa-times-circle mr-1"></i>Belum Bayar</span>`;
 
                     ul.innerHTML += `
-                        <li class="p-4 hover:bg-white transition flex items-center gap-4 group cursor-default">
-                            <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 font-bold flex items-center justify-center flex-shrink-0 text-xs">
+                        <li class="p-4 hover:bg-white transition flex items-start gap-4 group cursor-default">
+                            <div class="w-8 h-8 mt-1 rounded-full bg-slate-200 text-slate-600 font-bold flex items-center justify-center flex-shrink-0 text-xs">
                                 ${idx + 1}
                             </div>
                             <div class="flex-1">
                                 <h5 class="text-sm font-bold text-slate-800 group-hover:text-emerald-700 transition">${p.fullname} <span class="text-slate-400 font-normal text-xs ml-1">(${p.nickname})</span></h5>
-                                <div class="flex items-center gap-3 mt-1">
+                                ${statusBadge}
+                                <div class="flex items-center gap-3 mt-1.5">
                                     <p class="text-[11px] text-slate-500"><i class="fas fa-clock mr-1 text-slate-400"></i> ${p.timestamp.replace('T', ' ')}</p>
-                                    <p class="text-[11px] text-slate-500"><i class="fab fa-whatsapp mr-1 text-emerald-500"></i> ${p.wa}</p>
+                                    <a href="https://wa.me/${p.wa.replace(/^0/, '62')}" target="_blank" class="text-[11px] text-emerald-600 hover:underline"><i class="fab fa-whatsapp mr-1"></i> Chat WA</a>
                                 </div>
-                            </div>
-                            <div class="flex-shrink-0">
-                                ${proofIcon}
                             </div>
                         </li>
                     `;
