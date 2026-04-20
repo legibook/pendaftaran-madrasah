@@ -190,10 +190,11 @@
         const GITHUB_TOKEN = tokenPart1 + tokenPart2;
 
         const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents`;
+        
+        // PERBAIKAN PENTING: Cache-Control dihapus agar tidak bentrok dengan CORS (Keamanan Browser)
         const headers = { 
             'Authorization': `token ${GITHUB_TOKEN}`, 
-            'Accept': 'application/vnd.github.v3+json',
-            'Cache-Control': 'no-cache' // Membantu mencegah GitHub caching
+            'Accept': 'application/vnd.github.v3+json'
         };
 
         const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
@@ -219,23 +220,27 @@
             }
 
             try {
-                // Tambahkan penembus cache waktu agar data selalu fresh!
-                const res = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}&t=${new Date().getTime()}`, { headers });
+                // Menggunakan penembus cache URL agar data dari API selalu update
+                const cacheBusterUrl = `&t=${new Date().getTime()}`;
+                const res = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}${cacheBusterUrl}`, { headers });
+                
                 if (!res.ok) throw new Error("Gagal mengambil folder pendaftar");
                 
                 const files = await res.json();
                 const jsonFiles = files.filter(f => f.name.endsWith('.json'));
                 
-                const fetchPromises = jsonFiles.map(f => 
-                    fetch(`${f.download_url}&t=${new Date().getTime()}`) // Penembus cache konten
+                const fetchPromises = jsonFiles.map(f => {
+                    // Cek apakah URL asli sudah punya parameter ?, jika belum pakai ?, jika sudah pakai &
+                    const dlUrl = f.download_url.includes('?') ? `${f.download_url}&t=${new Date().getTime()}` : `${f.download_url}?t=${new Date().getTime()}`;
+                    return fetch(dlUrl)
                     .then(r => r.json())
                     .then(data => ({
                         path: f.path,
                         sha: f.sha,
                         content: data
                     }))
-                    .catch(() => null)
-                );
+                    .catch(() => null);
+                });
                 
                 const allData = await Promise.all(fetchPromises);
                 participantsDB = allData.filter(item => item !== null);
@@ -301,8 +306,7 @@
 
             // JIKA NAMA GANDA
             if (matches.length > 1) {
-                // Kunci penyimpanan LocalStorage kini menggunakan nama si pengguna, jadi tidak akan tertukar 
-                // jika alat yang sama dipakai orang lain.
+                // Kunci penyimpanan LocalStorage kini menggunakan nama si pengguna
                 const storageKey = 'madrasah_identity_' + tempInputNameNormalized;
                 const savedPath = localStorage.getItem(storageKey);
                 const savedMatch = matches.find(m => m.path === savedPath);
@@ -313,7 +317,7 @@
                 } else {
                     // Munculkan Modal Pilihan Alamat
                     const selectEl = document.getElementById('duplicate-select');
-                    // Wajibkan mereka memilih (tidak ada pilihan default yang mencelakakan)
+                    // Wajibkan mereka memilih
                     selectEl.innerHTML = '<option value="" disabled selected>-- Klik Untuk Memilih Identitas --</option>';
                     
                     matches.forEach((m, idx) => {
