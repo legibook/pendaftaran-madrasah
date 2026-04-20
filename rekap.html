@@ -128,23 +128,23 @@
                 </div>
             </div>
 
-            <!-- TAB 2: KONTEN STATUS PEMBAYARAN (BARU) -->
+            <!-- TAB 2: KONTEN STATUS PEMBAYARAN (DIPERBARUI) -->
             <div id="content-pembayaran" class="hidden animate-[fadeIn_0.3s_ease-out]">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
                     
-                    <!-- Card Belum Bayar -->
+                    <!-- Card Belum Bayar (Nunggak) -->
                     <div class="bg-white rounded-2xl border border-rose-200 shadow-sm overflow-hidden flex flex-col">
                         <div class="bg-rose-50 border-b border-rose-100 p-4 flex justify-between items-center shrink-0">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-full bg-rose-500 text-white flex items-center justify-center"><i class="fas fa-times-circle"></i></div>
-                                <h2 class="font-bold text-rose-900 text-lg">Belum Bayar</h2>
+                                <h2 class="font-bold text-rose-900 text-lg">Belum Lunas / Nunggak</h2>
                             </div>
                             <span id="badge-count-belum" class="bg-rose-200 text-rose-800 font-bold px-3 py-1 rounded-full text-sm">0</span>
                         </div>
                         <div class="overflow-x-auto flex-1 bg-white">
                             <table class="w-full text-left text-sm whitespace-nowrap">
                                 <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-                                    <tr><th class="p-4 w-12">No</th><th class="p-4">Nama Peserta</th><th class="p-4">Jadwal</th><th class="p-4 w-12 text-center">WA</th></tr>
+                                    <tr><th class="p-4 w-12">No</th><th class="p-4">Nama Peserta</th><th class="p-4">Status Tunggakan</th><th class="p-4 w-12 text-center">WA</th></tr>
                                 </thead>
                                 <tbody id="tbody-belum" class="divide-y divide-slate-100">
                                     <!-- Diisi JS -->
@@ -158,7 +158,7 @@
                         <div class="bg-emerald-50 border-b border-emerald-100 p-4 flex justify-between items-center shrink-0">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center"><i class="fas fa-check-circle"></i></div>
-                                <h2 class="font-bold text-emerald-900 text-lg">Sudah Lunas</h2>
+                                <h2 class="font-bold text-emerald-900 text-lg">Lunas (Sesuai Bulan Aktual)</h2>
                             </div>
                             <span id="badge-count-lunas" class="bg-emerald-200 text-emerald-800 font-bold px-3 py-1 rounded-full text-sm">0</span>
                         </div>
@@ -221,8 +221,19 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
         // ==========================================
-        // KONFIGURASI GITHUB (SAMA DENGAN INDEX.HTML)
+        // KONFIGURASI PENGATURAN BULAN & GITHUB
         // ==========================================
+        const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        
+        // HARUS SAMA DENGAN FILE KONFIRMASI.HTML
+        const PENGATURAN_MULAI_KELAS = {
+            "Baca Al-Quran": { bulan: "Maret", tahun: 2026 },
+            "Bahasa Arab": { bulan: "April", tahun: 2026 },
+            "Fiqih Ibadah": { bulan: "Mei", tahun: 2026 },
+            "Tafsir & Tadabbur": { bulan: "Juni", tahun: 2026 },
+            "DEFAULT": { bulan: "Januari", tahun: 2026 } 
+        };
+
         const GITHUB_REPO_OWNER = 'legibook'; 
         const GITHUB_REPO_NAME = 'pendaftaran-madrasah'; 
         const GITHUB_BRANCH = 'main'; 
@@ -241,6 +252,46 @@
         let CATEGORY_CAPACITY = {};
         const DEFAULT_QUOTA = 15;
 
+        // FUNGSI EVALUASI STATUS BAYAR (Kunci Otomatisasi Nunggak)
+        function evaluatePaymentStatus(p) {
+            const nowDate = new Date();
+            const currentAbsMonth = (nowDate.getFullYear() * 12) + nowDate.getMonth();
+
+            const userCategory = p.category || "DEFAULT";
+            const classConfig = PENGATURAN_MULAI_KELAS[userCategory] || PENGATURAN_MULAI_KELAS["DEFAULT"];
+            const startMonthStr = classConfig.bulan;
+            const startYearNum = classConfig.tahun;
+
+            const statusText = p.status_spp || 'Belum Bayar';
+            const hasPaidSomething = statusText.toLowerCase() !== 'belum bayar' && statusText.trim() !== '';
+
+            if (!hasPaidSomething) {
+                return { isLunas: false, text: `Belum Lunas ${startMonthStr} ${startYearNum}` };
+            }
+
+            const parts = statusText.split(' ');
+            let lastPaidAbsMonth = 0;
+
+            if (parts.length >= 3) {
+                const mIdx = MONTHS.indexOf(parts[1]);
+                const yNum = parseInt(parts[2]);
+                if (mIdx !== -1 && !isNaN(yNum)) {
+                    lastPaidAbsMonth = (yNum * 12) + mIdx;
+                }
+            }
+
+            // Lunas jika bulan bayar terakhir LEBIH BESAR ATAU SAMA DENGAN bulan aktual ini
+            if (lastPaidAbsMonth >= currentAbsMonth) {
+                return { isLunas: true, text: statusText };
+            } else {
+                // Jika kurang, maka tagih bulan berikutnya dari pembayaran terakhir
+                const nextDueAbsMonth = lastPaidAbsMonth + 1;
+                const nextDueMonthIdx = nextDueAbsMonth % 12;
+                const nextDueYearNum = Math.floor(nextDueAbsMonth / 12);
+                return { isLunas: false, text: `Belum Lunas ${MONTHS[nextDueMonthIdx]} ${nextDueYearNum}` };
+            }
+        }
+
         // ==========================================
         // 1. FETCH DATA DARI GITHUB
         // ==========================================
@@ -256,7 +307,9 @@
 
             try {
                 // Fetch Jadwal
-                const jadwalRes = await fetch(`${GITHUB_API_BASE}/data/jadwal.json?ref=${GITHUB_BRANCH}`, { headers });
+                const cacheBusterUrl = `&t=${new Date().getTime()}`;
+                const jadwalRes = await fetch(`${GITHUB_API_BASE}/data/jadwal.json?ref=${GITHUB_BRANCH}${cacheBusterUrl}`, { headers });
+                
                 if (jadwalRes.ok) {
                     const jadwalDataRaw = await jadwalRes.json();
                     const cleanB64 = jadwalDataRaw.content.replace(/\s/g, '');
@@ -281,12 +334,15 @@
                 }
 
                 // Fetch Pendaftar
-                const pendaftarRes = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}`, { headers });
+                const pendaftarRes = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}${cacheBusterUrl}`, { headers });
                 globalParticipants = [];
                 if (pendaftarRes.ok) {
                     const files = await pendaftarRes.json();
                     const jsonFiles = files.filter(f => f.name.endsWith('.json'));
-                    const fetchPromises = jsonFiles.map(f => fetch(f.download_url).then(res => res.json()).catch(() => null));
+                    const fetchPromises = jsonFiles.map(f => {
+                        const dlUrl = f.download_url.includes('?') ? `${f.download_url}&t=${new Date().getTime()}` : `${f.download_url}?t=${new Date().getTime()}`;
+                        return fetch(dlUrl).then(res => res.json()).catch(() => null);
+                    });
                     const pendaftarData = await Promise.all(fetchPromises);
                     
                     globalParticipants = pendaftarData.filter(data => data !== null);
@@ -302,7 +358,6 @@
                 console.error(err);
                 indicator.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Gagal Memuat';
                 indicator.className = 'flex items-center gap-2 text-sm font-medium text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-200';
-                alert('Gagal terkoneksi ke GitHub. Periksa token Anda.');
             }
         }
 
@@ -370,8 +425,11 @@
             participants.sort((a, b) => a.fullname.localeCompare(b.fullname));
 
             participants.forEach(p => {
-                const statusText = p.status_spp || 'Belum Bayar';
-                const isLunas = statusText.toLowerCase() !== 'belum bayar';
+                // Gunakan fungsi Evaluasi Pintar
+                const statusInfo = evaluatePaymentStatus(p);
+                const isLunas = statusInfo.isLunas;
+                const displayStatusText = statusInfo.text;
+                
                 const waNumber = p.wa ? p.wa.replace(/^0/, '62') : '';
                 const genderLabel = p.gender === 'Laki-laki' ? 'Ikhwan' : 'Akhwat';
                 
@@ -388,7 +446,7 @@
                         </td>
                         <td class="p-4">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold tracking-wide">
-                                <i class="fas fa-check-circle mr-1.5 text-emerald-600"></i>${statusText}
+                                <i class="fas fa-check-circle mr-1.5 text-emerald-600"></i>${displayStatusText}
                             </span>
                         </td>
                         <td class="p-4 text-center">
@@ -407,7 +465,10 @@
                             <p class="text-xs text-slate-500">${genderLabel}</p>
                         </td>
                         <td class="p-4">
-                            <p class="text-xs text-slate-600 max-w-[150px] truncate" title="${p.schedule}">${p.schedule}</p>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 border border-rose-200 text-xs font-bold tracking-wide">
+                                <i class="fas fa-times-circle mr-1.5 text-rose-600"></i>${displayStatusText}
+                            </span>
+                            <p class="text-[10px] text-slate-500 mt-1.5 truncate max-w-[150px]" title="${p.schedule}">${p.schedule}</p>
                         </td>
                         <td class="p-4 text-center">
                             <a href="https://wa.me/${waNumber}" target="_blank" title="Tagih via WA" class="inline-flex w-8 h-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white transition">
@@ -419,7 +480,7 @@
                 }
             });
 
-            if(countLunas === 0) tbodyLunas.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Belum ada peserta yang lunas di kelas ini.</td></tr>`;
+            if(countLunas === 0) tbodyLunas.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Belum ada peserta yang lunas di kelas ini hingga bulan berjalan.</td></tr>`;
             if(countBelum === 0) tbodyBelum.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Alhamdulillah, tidak ada yang menunggak bayaran.</td></tr>`;
             
             document.getElementById('badge-count-lunas').innerText = countLunas;
@@ -582,12 +643,14 @@
                 enrolled.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
 
                 enrolled.forEach((p, idx) => {
-                    // Cek Status Pembayaran
-                    const statusText = p.status_spp || 'Belum Bayar';
-                    const isLunas = statusText.toLowerCase() !== 'belum bayar';
+                    // Cek Status Pembayaran Pintar untuk Label di Dalam Pop-Up
+                    const statusInfo = evaluatePaymentStatus(p);
+                    const isLunas = statusInfo.isLunas;
+                    const displayStatusText = statusInfo.text;
+
                     const statusBadge = isLunas 
-                        ? `<span class="inline-flex items-center px-2 py-0.5 mt-1.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] font-bold tracking-wide"><i class="fas fa-check-circle mr-1"></i>${statusText}</span>`
-                        : `<span class="inline-flex items-center px-2 py-0.5 mt-1.5 rounded bg-rose-100 text-rose-700 border border-rose-200 text-[10px] font-bold tracking-wide"><i class="fas fa-times-circle mr-1"></i>Belum Bayar</span>`;
+                        ? `<span class="inline-flex items-center px-2 py-0.5 mt-1.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] font-bold tracking-wide"><i class="fas fa-check-circle mr-1"></i>${displayStatusText}</span>`
+                        : `<span class="inline-flex items-center px-2 py-0.5 mt-1.5 rounded bg-rose-100 text-rose-700 border border-rose-200 text-[10px] font-bold tracking-wide"><i class="fas fa-times-circle mr-1"></i>${displayStatusText}</span>`;
 
                     ul.innerHTML += `
                         <li class="p-4 hover:bg-white transition flex items-start gap-4 group cursor-default">
