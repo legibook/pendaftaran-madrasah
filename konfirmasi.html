@@ -127,7 +127,7 @@
             <p class="text-slate-500 text-sm mb-4">Sistem kami mencatat ada lebih dari satu peserta dengan nama Anda. Mohon pilih identitas/alamat Anda yang benar di bawah ini:</p>
             
             <div class="mb-6">
-                <select id="duplicate-select" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition cursor-pointer text-sm">
+                <select id="duplicate-select" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition cursor-pointer text-sm font-medium">
                     <!-- Opsi digenerate via JS -->
                 </select>
             </div>
@@ -190,14 +190,25 @@
         const GITHUB_TOKEN = tokenPart1 + tokenPart2;
 
         const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents`;
-        const headers = { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' };
+        const headers = { 
+            'Authorization': `token ${GITHUB_TOKEN}`, 
+            'Accept': 'application/vnd.github.v3+json',
+            'Cache-Control': 'no-cache' // Membantu mencegah GitHub caching
+        };
 
         const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         let participantsDB = [];
 
         // Temporary data holders untuk oper data antar function
+        let tempInputNameNormalized = '';
         let tempInputMonth = '';
         let tempInputYear = 0;
+
+        // Fungsi Anti-Typo Spasi (membuat nama jadi bersih tanpa spasi lebih)
+        const normalizeName = (name) => {
+            if (!name) return '';
+            return name.toLowerCase().replace(/\s+/g, ' ').trim();
+        };
 
         // 1. FETCH SEMUA DATA PESERTA SAAT HALAMAN DIBUKA
         async function loadParticipants() {
@@ -208,14 +219,15 @@
             }
 
             try {
-                const res = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}`, { headers });
+                // Tambahkan penembus cache waktu agar data selalu fresh!
+                const res = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}&t=${new Date().getTime()}`, { headers });
                 if (!res.ok) throw new Error("Gagal mengambil folder pendaftar");
                 
                 const files = await res.json();
                 const jsonFiles = files.filter(f => f.name.endsWith('.json'));
                 
                 const fetchPromises = jsonFiles.map(f => 
-                    fetch(f.download_url)
+                    fetch(`${f.download_url}&t=${new Date().getTime()}`) // Penembus cache konten
                     .then(r => r.json())
                     .then(data => ({
                         path: f.path,
@@ -271,15 +283,15 @@
         document.getElementById('payment-form').addEventListener('submit', (e) => {
             e.preventDefault();
 
-            const inputName = document.getElementById('fullname').value.trim();
+            const inputNameRaw = document.getElementById('fullname').value;
+            tempInputNameNormalized = normalizeName(inputNameRaw);
             tempInputMonth = document.getElementById('month').value;
             tempInputYear = parseInt(document.getElementById('year').value);
             
-            // Cari SEMUA peserta yang namanya persis sama
-            const matches = participantsDB.filter(p => p.content.fullname.toLowerCase() === inputName.toLowerCase());
+            // Cari SEMUA peserta dengan validasi nama yang sangat ketat (Anti-Spasi Typo)
+            const matches = participantsDB.filter(p => normalizeName(p.content.fullname) === tempInputNameNormalized);
             
             if (matches.length === 0) {
-                // Tidak ada yang cocok
                 document.getElementById('error-modal').classList.add('modal-open');
                 document.getElementById('error-modal-content').classList.add('modal-content-open');
                 return; 
@@ -289,22 +301,24 @@
 
             // JIKA NAMA GANDA
             if (matches.length > 1) {
-                // Cek apakah browser sudah pernah mengingat pilihan orang ini via LocalStorage
-                const savedPath = localStorage.getItem('madrasah_saved_identity_path');
+                // Kunci penyimpanan LocalStorage kini menggunakan nama si pengguna, jadi tidak akan tertukar 
+                // jika alat yang sama dipakai orang lain.
+                const storageKey = 'madrasah_identity_' + tempInputNameNormalized;
+                const savedPath = localStorage.getItem(storageKey);
                 const savedMatch = matches.find(m => m.path === savedPath);
 
                 if (savedMatch) {
-                    // Browser ingat identitasnya, langsung pakai tanpa nanya!
+                    // Browser sangat yakin ini orang yang tepat
                     targetUser = savedMatch;
                 } else {
-                    // Browser tidak ingat / bayar perdana -> Munculkan Modal Pilihan Alamat
+                    // Munculkan Modal Pilihan Alamat
                     const selectEl = document.getElementById('duplicate-select');
-                    selectEl.innerHTML = '';
+                    // Wajibkan mereka memilih (tidak ada pilihan default yang mencelakakan)
+                    selectEl.innerHTML = '<option value="" disabled selected>-- Klik Untuk Memilih Identitas --</option>';
                     
                     matches.forEach((m, idx) => {
                         const opt = document.createElement('option');
                         opt.value = m.path;
-                        // Tampilkan Alamat dan Kelas sebagai pembeda
                         let shortAddress = m.content.address.substring(0, 35) + (m.content.address.length > 35 ? '...' : '');
                         opt.textContent = `Kelas: ${m.content.category} | Alamat: ${shortAddress}`;
                         selectEl.appendChild(opt);
@@ -312,19 +326,25 @@
 
                     document.getElementById('duplicate-modal').classList.add('modal-open');
                     document.getElementById('duplicate-modal-content').classList.add('modal-content-open');
-                    return; // Hentikan proses, tunggu tombol dari Modal
+                    return; 
                 }
             }
 
-            // Jika hanya 1 orang ATAU localstorage sudah ketemu, langsung proses
+            // Langsung eksekusi jika tunggal atau cache memori cocok
             processPaymentUpdate(targetUser, tempInputMonth, tempInputYear);
         });
 
         // Fungsi Lanjutan jika peserta memilih identitas dari Modal Nama Ganda
         function resumePaymentFromDuplicate() {
             const selectedPath = document.getElementById('duplicate-select').value;
-            const targetUser = participantsDB.find(p => p.path === selectedPath);
             
+            // Validasi: Cegah lanjut jika peserta belum nge-klik apa-apa
+            if (!selectedPath) {
+                alert("Mohon klik dan pilih identitas Anda di menu kotak terlebih dahulu!");
+                return;
+            }
+
+            const targetUser = participantsDB.find(p => p.path === selectedPath);
             closeModal('duplicate-modal');
             
             if(targetUser) {
@@ -337,7 +357,7 @@
             
             // a. VALIDASI PEMBAYARAN BERUNTUN (CEGAH LONCAT/MUNDUR)
             const statusSpp = targetUser.content.status_spp || 'Belum Bayar';
-            if (statusSpp.toLowerCase() !== 'belum bayar') {
+            if (statusSpp.trim() !== '' && statusSpp.toLowerCase() !== 'belum bayar') {
                 const parts = statusSpp.split(' '); // ["Lunas", "Mei", "2026"]
                 if(parts.length >= 3) {
                     const lastMonthStr = parts[1];
@@ -424,8 +444,9 @@
 
                 // --- SUKSES ---
                 
-                // SIMPAN IDENTITAS KE BROWSER AGAR BULAN DEPAN TIDAK NANYA LAGI (JIKA NAMA GANDA)
-                localStorage.setItem('madrasah_saved_identity_path', targetUser.path);
+                // Simpan kunci unik ke Browser! Key digabung dengan nama pendaftar agar spesifik.
+                const storageKey = 'madrasah_identity_' + tempInputNameNormalized;
+                localStorage.setItem(storageKey, targetUser.path);
 
                 document.getElementById('success-status-text').innerText = textStatus.toUpperCase();
                 document.getElementById('success-modal').classList.add('modal-open');
