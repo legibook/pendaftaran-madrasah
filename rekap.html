@@ -87,58 +87,24 @@
                 </div>
             </div>
 
-            <!-- TABEL IKHWAN -->
+            <!-- TABEL IKHWAN DINAMIS -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
                 <div class="bg-blue-50 border-b border-blue-100 p-4 flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center"><i class="fas fa-mars"></i></div>
                     <h2 class="font-bold text-blue-900 text-lg">Rekap Jadwal Ikhwan</h2>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-                            <tr>
-                                <th class="p-4 w-16 text-center">No</th>
-                                <th class="p-4">Waktu</th>
-                                <th class="p-4 text-center bg-emerald-50/50">Senin & Rabu<br><span class="text-xs font-normal text-slate-400">Online</span></th>
-                                <th class="p-4 text-center bg-amber-50/50">Senin & Rabu<br><span class="text-xs font-normal text-slate-400">Offline</span></th>
-                                <th class="p-4 text-center bg-emerald-50/50">Selasa & Kamis<br><span class="text-xs font-normal text-slate-400">Online</span></th>
-                                <th class="p-4 text-center bg-amber-50/50">Selasa & Kamis<br><span class="text-xs font-normal text-slate-400">Offline</span></th>
-                                <th class="p-4 text-center bg-emerald-50/50">Sabtu & Ahad<br><span class="text-xs font-normal text-slate-400">Online</span></th>
-                                <th class="p-4 text-center bg-amber-50/50">Sabtu & Ahad<br><span class="text-xs font-normal text-slate-400">Offline</span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-ikhwan" class="divide-y divide-slate-100">
-                            <!-- Diisi oleh JS -->
-                        </tbody>
-                    </table>
-                </div>
+                <!-- Tempat Tabel Generate JS -->
+                <div id="container-ikhwan"></div>
             </div>
 
-            <!-- TABEL AKHWAT -->
+            <!-- TABEL AKHWAT DINAMIS -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
                 <div class="bg-pink-50 border-b border-pink-100 p-4 flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full bg-pink-600 text-white flex items-center justify-center"><i class="fas fa-venus"></i></div>
                     <h2 class="font-bold text-pink-900 text-lg">Rekap Jadwal Akhwat</h2>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-                            <tr>
-                                <th class="p-4 w-16 text-center">No</th>
-                                <th class="p-4">Waktu</th>
-                                <th class="p-4 text-center bg-emerald-50/50">Senin & Rabu<br><span class="text-xs font-normal text-slate-400">Online</span></th>
-                                <th class="p-4 text-center bg-amber-50/50">Senin & Rabu<br><span class="text-xs font-normal text-slate-400">Offline</span></th>
-                                <th class="p-4 text-center bg-emerald-50/50">Selasa & Kamis<br><span class="text-xs font-normal text-slate-400">Online</span></th>
-                                <th class="p-4 text-center bg-amber-50/50">Selasa & Kamis<br><span class="text-xs font-normal text-slate-400">Offline</span></th>
-                                <th class="p-4 text-center bg-emerald-50/50">Sabtu & Ahad<br><span class="text-xs font-normal text-slate-400">Online</span></th>
-                                <th class="p-4 text-center bg-amber-50/50">Sabtu & Ahad<br><span class="text-xs font-normal text-slate-400">Offline</span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-akhwat" class="divide-y divide-slate-100">
-                            <!-- Diisi oleh JS -->
-                        </tbody>
-                    </table>
-                </div>
+                <!-- Tempat Tabel Generate JS -->
+                <div id="container-akhwat"></div>
             </div>
             
             <!-- Legend -->
@@ -208,7 +174,6 @@
         const headers = { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' };
 
         // Variabel Data Global
-        let classList = [];
         let globalParticipants = [];
         let rawJadwalData = [];
         let CATEGORY_CAPACITY = {};
@@ -280,15 +245,8 @@
         }
 
         // ==========================================
-        // 2. RENDER DASHBOARD (TABEL & STATISTIK)
+        // 2. RENDER DASHBOARD (TABEL DINAMIS)
         // ==========================================
-        const TIME_SLOTS = ["06.30 - 08.00", "08.30 - 10.00", "10.00 - 11.30", "13.00 - 14.30", "16.00 - 17.30", "18.30 - 20.00"];
-        const DAYS_MAP = [
-            { id: "Senin & Rabu", keyType: "Online" }, { id: "Senin & Rabu", keyType: "Offline" },
-            { id: "Selasa & Kamis", keyType: "Online" }, { id: "Selasa & Kamis", keyType: "Offline" },
-            { id: "Sabtu & Ahad", keyType: "Online" }, { id: "Sabtu & Ahad", keyType: "Offline" }
-        ];
-
         function renderDashboard() {
             const selectedClass = document.getElementById('filter-kelas').value;
             if(!selectedClass) return;
@@ -305,78 +263,127 @@
             document.getElementById('stat-ikhwan').innerText = ikhwanCount;
             document.getElementById('stat-akhwat').innerText = akhwatCount;
 
-            // Render Tabel Ikhwan & Akhwat
-            renderTable('Laki-laki', classData, classParticipants, currentQuota, 'table-ikhwan');
-            renderTable('Perempuan', classData, classParticipants, currentQuota, 'table-akhwat');
+            // Render Tabel Ikhwan & Akhwat secara Dinamis
+            renderDynamicTable('Laki-laki', classData, classParticipants, currentQuota, 'container-ikhwan');
+            renderDynamicTable('Perempuan', classData, classParticipants, currentQuota, 'container-akhwat');
         }
 
-        function renderTable(gender, classData, participants, quota, tableId) {
-            const tbody = document.getElementById(tableId);
-            tbody.innerHTML = '';
+        function renderDynamicTable(gender, classData, participants, quota, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = ''; 
 
-            // Ekstrak jadwal yang dibuka di konfigurasi
             const openedSchedules = [];
+            let uniqueDaysSet = new Set();
+            let uniqueTimesSet = new Set();
+
+            // Ekstrak hari dan waktu dari data JSON Sveltia
             if(classData && classData.schedules) {
                 const genderSchedules = classData.schedules.filter(s => s.gender === gender);
                 genderSchedules.forEach(group => {
                     if(group.times) {
                         const times = group.times.split(',').map(t => t.trim());
                         times.forEach(t => {
-                            // t format: "Senin & Rabu | 06.30 - 08.00"
-                            openedSchedules.push(`${group.type} | ${t}`);
+                            // Sveltia format: "Senin | 06.30 - 08.00" atau "Senin & Rabu | 06.30 - 08.00"
+                            const parts = t.split('|').map(p => p.trim());
+                            if(parts.length === 2) {
+                                const dayPart = parts[0];
+                                const timePart = parts[1];
+                                uniqueDaysSet.add(dayPart);
+                                uniqueTimesSet.add(timePart);
+                                // Format gabungan untuk validasi
+                                openedSchedules.push(`${group.type} | ${dayPart} | ${timePart}`);
+                            }
                         });
                     }
                 });
             }
 
-            TIME_SLOTS.forEach((timeStr, index) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition";
-                
-                let rowHTML = `<td class="p-4 text-center text-slate-500 font-medium border-r border-slate-100">${index + 1}</td>`;
-                rowHTML += `<td class="p-4 font-bold text-slate-700 border-r border-slate-100">${timeStr}</td>`;
+            const uniqueDays = Array.from(uniqueDaysSet);
+            const uniqueTimes = Array.from(uniqueTimesSet).sort(); // Sortir waktu dari pagi ke malam
 
-                DAYS_MAP.forEach(col => {
-                    // Cek apakah jadwal ini dibuka di konfigurasi (Format: Type | Hari | Waktu)
-                    const exactFormatConfig = `${col.keyType} | ${col.id} | ${timeStr}`;
-                    const isOpened = openedSchedules.includes(exactFormatConfig);
-                    
-                    if(!isOpened) {
-                        rowHTML += `<td class="p-4 text-center bg-slate-100 border-r border-slate-50"></td>`;
-                    } else {
-                        // Perbaikan Bug: Samakan persis format pembacaan database 
-                        // Sesuai input formulir -> "Senin & Rabu | Online | 06.30 - 08.00"
-                        const dbFormat = `${col.id} | ${col.keyType} | ${timeStr}`;
-                        const enrolled = participants.filter(p => p.schedule === dbFormat);
-                        const count = enrolled.length;
-                        const isFull = count >= quota;
-                        
-                        let cellClass = "p-4 text-center border-r border-slate-100 cursor-pointer transition hover:scale-[1.02] relative ";
-                        let textClass = "font-bold text-lg ";
+            // Jika belum ada jadwal sama sekali
+            if (uniqueDays.length === 0 || uniqueTimes.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-500 italic">Belum ada jadwal yang diatur untuk kelompok ini.</div>`;
+                return;
+            }
 
-                        if(isFull) {
-                            cellClass += "bg-red-100 hover:bg-red-200 border-red-200";
-                            textClass += "text-red-700";
-                        } else {
-                            cellClass += "bg-emerald-50 hover:bg-emerald-100 border-emerald-100";
-                            textClass += "text-emerald-700";
-                        }
-
-                        // Buat data rahasia untuk dipanggil onClick
-                        const cellId = `cell-${gender}-${col.keyType}-${col.id.replace(/\s/g,'')}-${index}`;
-                        
-                        rowHTML += `
-                            <td class="${cellClass}" onclick="showDetailModal('${dbFormat}', '${gender}')" title="Klik untuk melihat nama peserta">
-                                <span class="${textClass}">${count}</span>
-                                <span class="text-[10px] block font-medium text-slate-400 mt-0.5">/ ${quota}</span>
-                            </td>
-                        `;
-                    }
-                });
-
-                tr.innerHTML = rowHTML;
-                tbody.appendChild(tr);
+            // --- BUILD THEAD (HEADER TABEL DINAMIS) ---
+            let theadHTML = `
+                <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                    <tr>
+                        <th class="p-4 w-16 text-center">No</th>
+                        <th class="p-4">Waktu</th>
+            `;
+            uniqueDays.forEach(day => {
+                theadHTML += `
+                    <th class="p-4 text-center bg-emerald-50/50 min-w-[120px]">${day}<br><span class="text-xs font-normal text-slate-400">Online</span></th>
+                    <th class="p-4 text-center bg-amber-50/50 min-w-[120px]">${day}<br><span class="text-xs font-normal text-slate-400">Offline</span></th>
+                `;
             });
+            theadHTML += `</tr></thead>`;
+
+            // --- BUILD TBODY (BARIS TABEL DINAMIS) ---
+            let tbodyHTML = `<tbody class="divide-y divide-slate-100">`;
+            
+            uniqueTimes.forEach((timeStr, index) => {
+                let rowHTML = `<tr class="hover:bg-slate-50 transition">`;
+                rowHTML += `<td class="p-4 text-center text-slate-500 font-medium border-r border-slate-100">${index + 1}</td>`;
+                rowHTML += `<td class="p-4 font-bold text-slate-700 border-r border-slate-100 whitespace-nowrap">${timeStr}</td>`;
+
+                uniqueDays.forEach(day => {
+                    ['Online', 'Offline'].forEach(type => {
+                        // Cek apakah ada jadwal dengan Hari, Tipe, dan Jam tersebut
+                        const exactFormatConfig = `${type} | ${day} | ${timeStr}`;
+                        const isOpened = openedSchedules.includes(exactFormatConfig);
+
+                        if(!isOpened) {
+                            // Kolom Abu-abu (Tidak Ada Jadwal)
+                            rowHTML += `<td class="p-4 text-center bg-slate-100 border-r border-slate-50"></td>`;
+                        } else {
+                            // Sama persis format database formulir
+                            const dbFormat = `${day} | ${type} | ${timeStr}`;
+                            const enrolled = participants.filter(p => p.schedule === dbFormat);
+                            const count = enrolled.length;
+                            const isFull = count >= quota;
+                            
+                            let cellClass = "p-4 text-center border-r border-slate-100 cursor-pointer transition hover:scale-[1.02] relative ";
+                            let textClass = "font-bold text-lg ";
+
+                            if(isFull) {
+                                cellClass += "bg-red-100 hover:bg-red-200 border-red-200";
+                                textClass += "text-red-700";
+                            } else {
+                                cellClass += "bg-emerald-50 hover:bg-emerald-100 border-emerald-100";
+                                textClass += "text-emerald-700";
+                            }
+                            
+                            // Hindari error tanda kutip (jika ada) saat onClick
+                            const escapedDbFormat = dbFormat.replace(/'/g, "\\'");
+                            const escapedGender = gender.replace(/'/g, "\\'");
+
+                            rowHTML += `
+                                <td class="${cellClass}" onclick="showDetailModal('${escapedDbFormat}', '${escapedGender}')" title="Klik untuk melihat nama peserta">
+                                    <span class="${textClass}">${count}</span>
+                                    <span class="text-[10px] block font-medium text-slate-400 mt-0.5">/ ${quota}</span>
+                                </td>
+                            `;
+                        }
+                    });
+                });
+                rowHTML += `</tr>`;
+                tbodyHTML += rowHTML;
+            });
+            tbodyHTML += `</tbody>`;
+
+            // Satukan dan Tampilkan
+            container.innerHTML = `
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        ${theadHTML}
+                        ${tbodyHTML}
+                    </table>
+                </div>
+            `;
         }
 
         // ==========================================
