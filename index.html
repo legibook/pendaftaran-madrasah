@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulir Pendaftaran Kelas Online dan Offline - Madrasah Ilmi</title>
+    
+    <!-- META TAGS -->
+    <meta property="og:title" content="Formulir Pendaftaran - Madrasah Ilmi">
+    <meta property="og:description" content="Daftar sekarang untuk mengikuti kelas belajar Islam yang bersanad dan fleksibel.">
+    <meta property="og:image" content="https://lh3.googleusercontent.com/pw/AP1GczPA9jXgztdoCCCKqYeoymeBj8Iu6edy4bCVqWV1bG00BlmrfgPfKi0WcAiLwTfbwiFZT4wzN-Tf6Gwn4pRVsruyyez4zzmV1Cgxe4232rKbxcch1W0mtL_JjFwW38Vfg66YuUdKRz-xuC0XnhCzXBRP=w512-h512-s-no-gm?authuser=0">
+    
+    <!-- FAVICON -->
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/pw/AP1GczPA9jXgztdoCCCKqYeoymeBj8Iu6edy4bCVqWV1bG00BlmrfgPfKi0WcAiLwTfbwiFZT4wzN-Tf6Gwn4pRVsruyyez4zzmV1Cgxe4232rKbxcch1W0mtL_JjFwW38Vfg66YuUdKRz-xuC0XnhCzXBRP=w512-h512-s-no-gm?authuser=0">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    },
+                    colors: {
+                        emerald: {
+                            850: '#064e3b',
+                            900: '#022c22',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Animasi Masuk */
+        .fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* Custom Scrollbar untuk form panjang */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #059669; }
+
+        /* Accordion Schedule Animation */
+        .accordion-content { transition: max-height 0.3s ease-out, opacity 0.3s ease-out; max-height: 0; opacity: 0; overflow: hidden; }
+        .accordion-open .accordion-content { max-height: 350px; opacity: 1; overflow-y: auto; }
+        .accordion-arrow { transition: transform 0.3s ease; }
+        .accordion-open .accordion-arrow { transform: rotate(180deg); }
+        
+        /* Modal Transitions */
+        .modal-open { opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }
+        .modal-content-open { transform: scale(1) translateY(0) !important; }
+    </style>
+</head>
+<body class="text-gray-700 bg-white min-h-screen font-sans antialiased flex flex-col items-center relative">
+
+    <!-- CONTAINER UTAMA (TIDAK ADA BOX/SHADOW) -->
+    <main class="w-full max-w-3xl bg-white fade-in-up relative z-10 flex-1 flex flex-col">
+        
+        <!-- HEADER IMAGE (GAYA GOOGLE FORM) -->
+        <div class="h-32 md:h-48 w-full relative group bg-gray-200 shrink-0">
+         
+         <img src="https://lh3.googleusercontent.com/pw/AP1GczMvjSG62rRn_iDpkPpkEz7hObembthNen-fcPJxe9fz5e7PQLOBY0R00afUbBBfCXiLH1-u9d79jl3xfkUt_yVKjM3WYAd3uK51jfK-g2k-UCAa6km9qVUqWWyvdxzjuFhlNQ5B28KLSxXpAZxjQQ7X=w800-h256-s-no-gm?authuser=0" 
+              alt="Header Mobile" 
+              class="w-full h-full object-cover block md:hidden">
+
+         <img src="https://lh3.googleusercontent.com/pw/AP1GczO5S1_-XHqHALKgfQt4kvScCFP5p4quaIih0eB1F7io4c_-f98xSnXzXThfEVDpeOXoFNDmyV_i5o50umB3iPU_2fOxfOJITx-n3g4SgNuhrAZL47SAvnx1oam1wALKJ_sBlmrSMtSn0KErkCqNaJOo=w1600-h400-s-no-gm?authuser=0" 
+              alt="Header Desktop" 
+              class="w-full h-full object-cover hidden md:block">
+
+         <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
+             <!-- Logo Overlay Kecil -->
+             <div class="absolute bottom-4 left-6 md:left-10">
+             <h1 class="text-white font-serif font-bold text-2xl md:text-3xl shadow-sm"></h1>
+         </div>
+    </div>
+
+        <!-- LINE INDIKATOR ATAS (Opsional, ala Google Form) -->
+        <div class="h-2 w-full bg-emerald-600 shrink-0"></div>
+
+        <!-- KONTEN FORMULIR -->
+        <div class="p-3 sm:p-6 md:p-10 flex-1">
+            
+            <!-- Judul & Deskripsi -->
+            <div class="mb-6 sm:mb-8 border-b border-gray-100 pb-4 sm:pb-6">
+                <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-emerald-900 mb-2">Formulir Pendaftaran Kelas Online & Offline</h2>
+                <p class="text-gray-500 text-xs sm:text-sm md:text-base leading-relaxed">
+                    Ahlan wa Sahlan! Silahkan lengkapi data diri Anda di bawah ini untuk bergabung. 
+                    Pastikan nomor WhatsApp yang dimasukkan aktif untuk keperluan konfirmasi jadwal.
+                </p>
+            </div>
+
+            <!-- FORM START -->
+            <form id="registration-form" class="space-y-6">
+                
+                <!-- 1. IDENTITAS DIRI -->
+                <div class="bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-100 space-y-4">
+                    <h3 class="font-bold text-gray-800 border-b border-gray-200 pb-2 mb-2"><i class="fas fa-user-circle text-emerald-600 mr-2"></i>Identitas Diri</h3>
+                    
+                    <!-- Nama Lengkap -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
+                        <input type="text" name="fullname" id="fullname" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition bg-white" placeholder="Sesuai KTP">
+                    </div>
+                    
+                    <!-- Nama Panggilan & Gender (Grid) -->
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Panggilan <span class="text-red-500">*</span></label>
+                            <input type="text" name="nickname" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition bg-white" placeholder="Nama Akrab">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Kelamin <span class="text-red-500">*</span></label>
+                            <div class="flex gap-2 sm:gap-4 mt-1">
+                                <!-- Tambahkan onchange="updateScheduleOptions()" di sini -->
+                                <label class="cursor-pointer flex-1">
+                                    <input type="radio" name="gender" value="Laki-laki" class="peer sr-only" required onchange="updateScheduleOptions()">
+                                    <div class="px-4 py-2 border border-gray-300 text-center rounded-lg text-sm hover:bg-white peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 transition flex items-center justify-center gap-2 bg-white">
+                                        <i class="fas fa-mars"></i> Laki-laki
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer flex-1">
+                                    <input type="radio" name="gender" value="Perempuan" class="peer sr-only" onchange="updateScheduleOptions()">
+                                    <div class="px-4 py-2 border border-gray-300 text-center rounded-lg text-sm hover:bg-white peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 transition flex items-center justify-center gap-2 bg-white">
+                                        <i class="fas fa-venus"></i> Perempuan
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. KONTAK & ALAMAT -->
+                <div class="bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-100 space-y-4">
+                    <h3 class="font-bold text-gray-800 border-b border-gray-200 pb-2 mb-2"><i class="fas fa-address-book text-emerald-600 mr-2"></i>Kontak & Alamat</h3>
+                    
+                    <!-- WhatsApp -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 uppercase">WHATSAPP <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                <i class="fab fa-whatsapp text-gray-400 text-lg"></i>
+                            </div>
+                            <input type="tel" pattern="[0-9]*" inputmode="numeric" name="wa" required class="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition bg-white placeholder-gray-400" placeholder="08xxxxxxxxx">
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Masukan nomor WhatsApp lengkap diawali 08...</p>
+                    </div>
+
+                    <!-- Alamat -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Domisili <span class="text-red-500">*</span></label>
+                        <textarea name="address" required rows="2" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition bg-white" placeholder="Jalan, Kota, Provinsi"></textarea>
+                    </div>
+                </div>
+
+                <!-- 3. PEMILIHAN KELAS (INTI) -->
+                <div class="bg-emerald-50 p-4 sm:p-5 rounded-xl border border-emerald-100 space-y-4">
+                    <h3 class="font-bold text-emerald-900 border-b border-emerald-200 pb-2 mb-2"><i class="fas fa-book-open text-emerald-600 mr-2"></i>Pilihan Program</h3>
+
+                    <!-- Dropdown Kelas -->
+                    <div>
+                        <label class="block text-sm font-medium text-emerald-900 mb-1">Pilih Kelas yang Diminati <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <!-- Update onchange untuk trigger updateScheduleOptions tanpa argumen -->
+                            <select id="kelas-select" name="category" onchange="updateScheduleOptions()" class="w-full px-4 py-3 border border-emerald-300 rounded-lg bg-white font-medium text-gray-800 focus:ring-2 focus:ring-emerald-500 outline-none appearance-none cursor-pointer">
+                            <option value="" disabled selected>-- Pilih Salah Satu Program --</option>
+                            <option value="Baca Al-Quran">Kelas Baca Al-Quran (Qara'na)</option>
+                            <option value="Bahasa Arab">Kelas Bahasa Arab (Nahwu Shorof)</option>
+                            <option value="Fiqih Ibadah">Kelas Fiqih Ibadah</option>
+                            <option value="Tafsir & Tadabbur">Kelas Tafsir Al-Quran</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-emerald-600">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Container Jadwal Dinamis -->
+                    <div id="schedule-container" class="animate-fade-in mt-4">
+                        <label class="block text-sm font-medium text-emerald-900 mb-2">Pilih Jadwal <span class="text-red-500">*</span></label>
+                        <div id="schedule-options" class="space-y-3">
+                            <!-- Placeholder Awal -->
+                            <div class="text-sm text-gray-500 italic p-4 bg-white/50 rounded-lg border border-dashed border-gray-300 text-center">
+                                <i class="fas fa-arrow-up mb-1 block"></i>
+                                Silahkan pilih kelas terlebih dahulu untuk melihat jadwal.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kemampuan Baca Quran -->
+                    <div class="mt-4 pt-4 border-t border-emerald-200/50">
+                        <label class="block text-sm font-medium text-emerald-900 mb-2">Kemampuan Baca Al-Quran Saat Ini <span class="text-red-500">*</span></label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="ability" value="Nol" class="peer sr-only" required>
+                                <div class="px-3 py-2 border border-emerald-200 bg-white text-center rounded-lg text-sm hover:bg-emerald-50 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 transition">
+                                    Belum Bisa (Nol)
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="ability" value="Iqro" class="peer sr-only">
+                                <div class="px-3 py-2 border border-emerald-200 bg-white text-center rounded-lg text-sm hover:bg-emerald-50 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 transition">
+                                    Iqro / Terbata
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="ability" value="Al-Quran" class="peer sr-only">
+                                <div class="px-3 py-2 border border-emerald-200 bg-white text-center rounded-lg text-sm hover:bg-emerald-50 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 transition">
+                                    Sudah Al-Quran
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Bukti Pendaftaran (Baru) -->
+                    <div class="mt-4 pt-4 border-t border-emerald-200/50">
+                        <label class="block text-sm font-medium text-emerald-900 mb-1">Lampirkan Bukti Pendaftaran <span class="text-red-500">*</span></label>
+                        <p class="text-xs text-emerald-800 mb-3 font-semibold bg-emerald-100 inline-block px-2.5 py-1 rounded-md border border-emerald-200">
+                            <i class="fas fa-info-circle mr-1"></i> Pendaftaran Rp. 15.000
+                        </p>
+                        <div class="relative">
+                            <input type="file" id="payment-proof" accept="image/*" required class="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 transition border border-gray-300 rounded-lg bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <p class="text-[11px] text-gray-400 mt-1.5"><i class="fas fa-image mr-1"></i> Format: JPG, JPEG, PNG. Maksimal 2MB.</p>
+                        </div>
+                        
+                        <!-- Hidden inputs untuk data base64 -->
+                        <input type="hidden" id="fileData" name="fileData">
+                        <input type="hidden" id="fileName" name="fileName">
+                    </div>
+
+                </div>
+
+                <!-- BUTTON SUBMIT -->
+                <div class="pt-4">
+                    <button type="submit" id="btn-submit" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/30 flex justify-center items-center transform active:scale-[0.99]">
+                        <span class="text-lg">Kirim Pendaftaran</span>
+                        <i class="fas fa-paper-plane ml-2"></i>
+                    </button>
+                    <p class="text-center text-xs text-gray-400 mt-4">
+                        Dengan mendaftar, Anda menyetujui kebijakan privasi Madrasah Ilmi.
+                    </p>
+                </div>
+
+            </form>
+
+            <!-- SUCCESS MESSAGE (Hidden by default) -->
+            <div id="success-view" class="hidden text-center py-10">
+                <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+                    <i class="fas fa-check text-5xl text-green-600"></i>
+                </div>
+                <h3 class="text-3xl font-bold text-gray-900 mb-3">Alhamdulillah!</h3>
+                <p class="text-gray-600 mb-8 text-lg">
+                    Data pendaftaran Anda telah kami terima.<br>
+                    Silahkan bergabung ke grup WhatsApp untuk informasi selanjutnya.
+                </p>
+                <a href="https://chat.whatsapp.com/Fe3xs82rs6r2b7fZyJVm4G" target="_blank" class="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition shadow-lg shadow-green-500/30 transform hover:-translate-y-1">
+                    <i class="fab fa-whatsapp text-2xl mr-3"></i> Gabung Grup WhatsApp
+                </a>
+                <div class="mt-8">
+                    <button onclick="window.location.reload()" class="text-gray-400 hover:text-emerald-600 underline text-sm">Daftar Lagi / Kembali</button>
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- FOOTER CARD -->
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 text-center shrink-0">
+            <p class="text-xs text-gray-400">&copy; 2024 Madrasah Ilmi. All Rights Reserved.</p>
+        </div>
+    </main>
+
+    <!-- ==============================================
+         MODAL: POP UP DAFTAR PESERTA 
+         ============================================== -->
+    <div id="peserta-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 invisible pointer-events-none transition-all duration-300">
+        <div id="peserta-modal-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden transform scale-95 translate-y-4 transition-all duration-300">
+            <!-- Header Modal -->
+            <div class="bg-slate-800 text-white p-5 relative">
+                <button onclick="closeParticipantsModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-700/50 hover:bg-slate-600 text-slate-300 hover:text-white transition">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="flex items-center gap-3 mb-1">
+                    <i class="fas fa-users text-xl text-emerald-400"></i>
+                    <h3 class="text-lg font-bold">Daftar Peserta</h3>
+                </div>
+                <p id="modal-schedule-title" class="text-slate-300 text-sm italic font-medium opacity-90 pl-8">Selasa & Kamis | Online | 06.30 - 08.00</p>
+            </div>
+            
+            <!-- Body Modal -->
+            <div class="p-5 max-h-[60vh] overflow-y-auto bg-slate-50/50">
+                <div class="flex justify-between items-center mb-4 bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Jumlah Peserta Terdaftar</h4>
+                    <span id="modal-count-badge" class="bg-emerald-100 text-emerald-700 font-bold px-3 py-1 rounded-full text-sm">0</span>
+                </div>
+                
+                <div id="modal-participants-list" class="space-y-3">
+                    <!-- List items generated via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- JAVASCRIPT LOGIC - REVISI GITHUB -->
+    <script>
+        /* -----------------------------------------------------
+           KONFIGURASI GITHUB API (THE BRIDGE)
+           Ubah bagian ini sesuai dengan repositori Anda
+           ----------------------------------------------------- */
+        const GITHUB_REPO_OWNER = 'legibook'; // Ganti username github
+        const GITHUB_REPO_NAME = 'pendaftaran-madrasah'; // Ganti nama repo
+        const GITHUB_BRANCH = 'main'; 
+        // PERINGATAN KEAMANAN: Jangan gunakan token utama Anda di sini. 
+        // Buatlah "Fine-grained personal access token" di GitHub yang HANYA memiliki 
+        // akses "Read and Write" ke "Contents" untuk repositori ini saja.
+        const GITHUB_TOKEN = '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'; 
+
+        const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents`;
+        
+        const headers = {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Accept': 'application/vnd.github.v3+json'
+        };
+
+        // === KONFIGURASI KAPASITAS DEFAULT ===
+        const DEFAULT_QUOTA = 15; 
+        let CATEGORY_CAPACITY = {
+            "Baca Al-Quran": 15,
+            "Bahasa Arab": 25,
+            "Fiqih Ibadah": 25,
+            "Tafsir & Tadabbur": 20
+        };
+
+        let classData = {
+            // Data awal sebagai fallback, ini akan ditimpa oleh data dari GitHub (jadwal.json)
+            quran: { selectValue: "Baca Al-Quran", schedules: {} }
+        };
+
+        let globalParticipants = [];
+        let isDataLoaded = false;
+
+        /* -----------------------------------------------------
+           LOGIC: FETCH DATA DARI GITHUB
+           ----------------------------------------------------- */
+        async function fetchGitHubData() {
+            try {
+                // 1. Ambil file jadwal.json (Jika Anda sudah membuatnya via Sveltia)
+                try {
+                    const jadwalRes = await fetch(`${GITHUB_API_BASE}/data/jadwal.json?ref=${GITHUB_BRANCH}`, { headers });
+                    if (jadwalRes.ok) {
+                        const jadwalDataRaw = await jadwalRes.json();
+                        const decodedJadwal = JSON.parse(decodeURIComponent(escape(atob(jadwalDataRaw.content))));
+                        
+                        // Parse JSON Sveltia ke format classData yang dipahami form ini
+                        if(decodedJadwal.kelas) {
+                            classData = {};
+                            decodedJadwal.kelas.forEach((kls, index) => {
+                                const key = 'kelas_' + index;
+                                classData[key] = {
+                                    selectValue: kls.nama,
+                                    schedules: { "Laki-laki": [], "Perempuan": [] }
+                                };
+                                if (kls.kuota) CATEGORY_CAPACITY[kls.nama] = kls.kuota;
+                                
+                                if(kls.schedules) {
+                                    kls.schedules.forEach(sch => {
+                                        if(!classData[key].schedules[sch.gender]) {
+                                            classData[key].schedules[sch.gender] = [];
+                                        }
+                                        // Cari apakah tipe (Online/Offline) sudah ada
+                                        let typeGroup = classData[key].schedules[sch.gender].find(g => g.type === sch.type);
+                                        if(!typeGroup) {
+                                            typeGroup = { type: sch.type, times: [] };
+                                            classData[key].schedules[sch.gender].push(typeGroup);
+                                        }
+                                        if (sch.times) {
+                                            const timeArray = sch.times.split(',').map(t => t.trim());
+                                            typeGroup.times.push(...timeArray);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.log("Jadwal.json dari GitHub belum ada/gagal diakses, menggunakan fallback.");
+                }
+
+                // 2. Ambil daftar file JSON peserta di folder data/pendaftar/
+                const pendaftarRes = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}`, { headers });
+                if (pendaftarRes.ok) {
+                    const files = await pendaftarRes.json();
+                    
+                    // Filter hanya file .json
+                    const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+                    
+                    // Fetch isi setiap file JSON
+                    const fetchPromises = jsonFiles.map(f => 
+                        fetch(f.download_url).then(res => res.json()).catch(() => null)
+                    );
+                    
+                    const pendaftarData = await Promise.all(fetchPromises);
+                    
+                    // Masukkan ke array global
+                    globalParticipants = pendaftarData.filter(data => data !== null).map(data => ({
+                        fullName: data.fullname,
+                        category: data.category,
+                        gender: data.gender,
+                        schedule: data.schedule,
+                        timestamp: data.timestamp
+                    }));
+                }
+
+            } catch (err) {
+                console.warn("Gagal memuat data dari GitHub.", err);
+            } finally {
+                isDataLoaded = true;
+                if (document.getElementById('kelas-select').value) updateScheduleOptions();
+            }
+        }
+        
+        window.addEventListener('DOMContentLoaded', fetchGitHubData);
+
+        /* -----------------------------------------------------
+           LOGIC: UPDATE JADWAL & PROGRESS BAR (SAMA SEPERTI ASLI)
+           ----------------------------------------------------- */
+        function updateScheduleOptions() {
+            const container = document.getElementById('schedule-options');
+            const classSelect = document.getElementById('kelas-select');
+            
+            const selectedClassName = classSelect.value;
+            const genderInput = document.querySelector('input[name="gender"]:checked');
+            const selectedGender = genderInput ? genderInput.value : null;
+
+            container.innerHTML = ''; 
+            
+            if (!selectedClassName) {
+                container.innerHTML = '<div class="text-sm text-gray-500 italic p-4 bg-white/50 rounded-lg border border-dashed border-gray-300 text-center"><i class="fas fa-arrow-up mb-1 block"></i>Silahkan pilih kelas terlebih dahulu.</div>';
+                return;
+            }
+
+            if (!selectedGender) {
+                container.innerHTML = '<div class="text-sm text-red-500 italic p-4 bg-red-50 rounded-lg border border-red-100 text-center"><i class="fas fa-exclamation-circle mb-1 block"></i>Mohon pilih <b>Jenis Kelamin</b> di bagian Identitas Diri terlebih dahulu untuk melihat jadwal yang sesuai (Ikhwan/Akhwat).</div>';
+                return;
+            }
+
+            if (!isDataLoaded) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center p-8 bg-white/50 rounded-xl border border-slate-200 text-center">
+                        <i class="fas fa-circle-notch fa-spin text-emerald-500 text-3xl mb-3"></i>
+                        <p class="text-sm text-slate-600 font-medium">Sinkronisasi kuota dari pusat...</p>
+                        <p class="text-xs text-slate-400 mt-1">Mohon tunggu sebentar</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const currentQuota = CATEGORY_CAPACITY[selectedClassName] || DEFAULT_QUOTA;
+
+            let selectedKey = null;
+            for(const [key, data] of Object.entries(classData)) {
+                if(data.selectValue === selectedClassName) { selectedKey = key; break; }
+            }
+
+            if(selectedKey && classData[selectedKey].schedules) {
+                const schedulesByGender = classData[selectedKey].schedules[selectedGender];
+
+                if(schedulesByGender && schedulesByGender.length > 0) {
+                    schedulesByGender.forEach((group) => {
+                        const isClosed = group.times.length === 0;
+
+                        const accordionItem = document.createElement('div');
+                        accordionItem.className = "border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm transition-all duration-300 mb-3";
+                        
+                        const header = document.createElement('button');
+                        header.type = "button"; 
+                        header.className = "w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-emerald-50 transition text-left focus:outline-none group";
+                        const iconClass = group.type === 'Online' ? 'fa-laptop' : 'fa-users';
+                        
+                        let subtitleText = `<span class="text-xs text-gray-400 font-normal">${group.times.length} Opsi Jadwal</span>`;
+                        if(isClosed) subtitleText = `<span class="text-xs text-red-500 font-bold">Belum Dibuka</span>`;
+
+                        header.innerHTML = `
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-gray-200 mr-3 shadow-sm group-hover:border-emerald-200 group-hover:text-emerald-600 transition">
+                                    <i class="fas ${iconClass} text-gray-500 group-hover:text-emerald-600 text-sm"></i>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-gray-800 text-sm block">${group.type}</span>
+                                    ${subtitleText}
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down text-gray-400 accordion-arrow"></i>
+                        `;
+
+                        const content = document.createElement('div');
+                        content.className = "accordion-content bg-white border-t border-gray-100";
+                        
+                        const innerList = document.createElement('div');
+                        innerList.className = "p-2 sm:p-3 space-y-2";
+
+                        if (isClosed) {
+                            innerList.innerHTML = `
+                                <div class="flex items-center text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">
+                                    <i class="fas fa-ban mr-3 text-lg"></i>
+                                    <span class="text-sm font-medium">Mohon maaf, kelas belum dibuka untuk ${group.type.toLowerCase()}!</span>
+                                </div>
+                            `;
+                        } else {
+                            group.times.forEach(time => {
+                                const isTimeClosed = time.toLowerCase().includes('tidak tersedia');
+                                const formattedValue = time.includes('|') ? time.replace('|', `| ${group.type} |`) : `${group.type} - ${time}`;
+                                
+                                const registered = globalParticipants.filter(p => 
+                                    p.category === selectedClassName && 
+                                    p.gender === selectedGender && 
+                                    p.schedule === formattedValue
+                                );
+                                
+                                const count = registered.length;
+                                const isFull = count >= currentQuota;
+                                const isDisabled = isTimeClosed || isFull;
+                                
+                                const progressPercent = Math.min((count / currentQuota) * 100, 100);
+                                let progressColor = 'bg-emerald-500';
+                                if (isFull) progressColor = 'bg-red-500';
+                                else if (progressPercent >= 70) progressColor = 'bg-amber-400';
+
+                                const disableAttr = isDisabled ? 'disabled' : '';
+                                const containerClasses = isDisabled ? 'border-slate-200 bg-slate-50 opacity-80' : 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-sm cursor-pointer';
+
+                                const itemDiv = document.createElement('div');
+                                itemDiv.className = `flex flex-col p-2.5 sm:p-3 rounded-xl border transition duration-200 mb-2 relative overflow-hidden group ${containerClasses}`;
+                                
+                                itemDiv.innerHTML = `
+                                    <div class="flex justify-between items-center z-10 relative">
+                                        <label class="flex items-center gap-1.5 sm:gap-3 flex-1 min-w-0 ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}">
+                                            <input type="radio" name="schedule" value="${formattedValue}" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 focus:ring-emerald-500 mt-0.5 shrink-0" required ${disableAttr} ${isFull ? 'data-full="true"' : ''}>
+                                            <div class="flex flex-col flex-1 min-w-0">
+                                                <span class="text-[11px] min-[375px]:text-[11px] sm:text-sm font-semibold text-slate-700 tracking-tight truncate ${isDisabled ? 'text-slate-400' : ''}" title="${time}">${time}</span>
+                                                ${isFull ? '<span class="text-[9px] sm:text-[10px] text-red-500 font-bold uppercase tracking-wider mt-0.5"><i class="fas fa-exclamation-circle"></i> Kuota Penuh</span>' : ''}
+                                            </div>
+                                        </label>
+                                        <div class="flex items-center gap-1.5 sm:gap-2 pl-1 sm:pl-2 shrink-0">
+                                            <div class="text-[9px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded ${isFull ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}">
+                                                ${count}/${currentQuota}
+                                            </div>
+                                            <button type="button" onclick="showParticipantsModal('${formattedValue}', '${time}')" class="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition z-20 focus:outline-none shrink-0" title="Lihat Daftar Peserta">
+                                                <i class="fas fa-eye text-[10px] sm:text-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 sm:mt-3 ml-5 sm:ml-7 mr-8 sm:mr-14 relative z-10">
+                                        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden border border-slate-200/50">
+                                            <div class="h-1.5 rounded-full ${progressColor} transition-all duration-1000 ease-out" style="width: ${progressPercent}%"></div>
+                                        </div>
+                                    </div>
+                                    ${isFull ? '<div class="absolute inset-0 bg-red-50/10 pointer-events-none"></div>' : ''}
+                                `;
+                                
+                                if(!isDisabled) {
+                                    itemDiv.onclick = function(e) {
+                                        if(e.target.closest('button')) return; 
+                                        const radio = this.querySelector('input[type="radio"]');
+                                        if(radio) radio.checked = true;
+                                    }
+                                }
+
+                                innerList.appendChild(itemDiv);
+                            });
+                        }
+
+                        content.appendChild(innerList);
+
+                        header.onclick = () => {
+                            const isOpen = accordionItem.classList.contains('accordion-open');
+                            document.querySelectorAll('.accordion-open').forEach(el => el.classList.remove('accordion-open')); 
+                            if(!isOpen) {
+                                accordionItem.classList.add('accordion-open');
+                                header.classList.add('bg-emerald-50');
+                            }
+                        };
+                        
+                        accordionItem.appendChild(header);
+                        accordionItem.appendChild(content);
+                        container.appendChild(accordionItem);
+                    });
+                } else {
+                    container.innerHTML = '<p class="text-sm text-gray-500 italic p-3 bg-red-50 rounded-lg border border-red-100 text-center">Mohon maaf, jadwal untuk ' + selectedGender + ' belum tersedia di kelas ini.</p>';
+                }
+            } else {
+                 container.innerHTML = '<p class="text-sm text-gray-500 italic p-3 bg-red-50 rounded-lg border border-red-100 text-center">Jadwal tidak ditemukan.</p>';
+            }
+        }
+
+        /* -----------------------------------------------------
+           LOGIC: MODAL PESERTA
+           ----------------------------------------------------- */
+        function formatDateStr(dateStr) {
+            if(!dateStr) return "-";
+            const parts = dateStr.split(' ')[0].split('-'); 
+            if(parts.length === 3) {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+                const monthIdx = parseInt(parts[1]) - 1;
+                const monthName = months[monthIdx] || parts[1];
+                return `${parts[2]} ${monthName} ${parts[0]}`;
+            }
+            return dateStr.split(' ')[0]; 
+        }
+
+        function showParticipantsModal(scheduleFormattedValue, displayTime) {
+            const classSelect = document.getElementById('kelas-select').value;
+            const genderSelect = document.querySelector('input[name="gender"]:checked').value;
+            
+            document.getElementById('modal-schedule-title').innerText = displayTime;
+            
+            const participants = globalParticipants.filter(p => 
+                p.category === classSelect && 
+                p.gender === genderSelect && 
+                p.schedule === scheduleFormattedValue
+            );
+            
+            document.getElementById('modal-count-badge').innerText = participants.length;
+            
+            const listContainer = document.getElementById('modal-participants-list');
+            listContainer.innerHTML = '';
+            
+            if (participants.length === 0) {
+                listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 italic text-sm">Belum ada peserta yang mendaftar di jadwal ini.</div>';
+            } else {
+                participants.forEach((p, index) => {
+                    const item = document.createElement('div');
+                    item.className = "bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4 hover:border-emerald-200 transition";
+                    item.innerHTML = `
+                        <div class="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 text-slate-500 font-bold flex items-center justify-center flex-shrink-0 text-sm">
+                            ${index + 1}
+                        </div>
+                        <div>
+                            <h5 class="text-sm font-bold text-slate-800">${p.fullName}</h5>
+                            <p class="text-xs text-slate-400 mt-0.5"><i class="far fa-calendar-alt mr-1"></i> ${formatDateStr(p.timestamp)}</p>
+                        </div>
+                    `;
+                    listContainer.appendChild(item);
+                });
+            }
+            
+            const modal = document.getElementById('peserta-modal');
+            const modalContent = document.getElementById('peserta-modal-content');
+            
+            modal.classList.add('modal-open');
+            modalContent.classList.add('modal-content-open');
+        }
+
+        function closeParticipantsModal() {
+            const modal = document.getElementById('peserta-modal');
+            const modalContent = document.getElementById('peserta-modal-content');
+            
+            modal.classList.remove('modal-open');
+            modalContent.classList.remove('modal-content-open');
+        }
+
+        /* -----------------------------------------------------
+           LOGIC: UPLOAD BUKTI PEMBAYARAN (BASE64)
+           ----------------------------------------------------- */
+        document.getElementById('payment-proof').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if(file) {
+                if(file.size > 2 * 1024 * 1024) { 
+                    alert('Ukuran file terlalu besar! Maksimal 2MB.');
+                    this.value = ''; 
+                    document.getElementById('fileData').value = '';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = e.target.result.split(',');
+                    document.getElementById('fileData').value = data[1]; // Base64 content only
+                    
+                    // Buat nama file unik untuk GitHub: timestamp_namaasli.jpg
+                    const timestamp = new Date().getTime();
+                    const cleanFileName = file.name.replace(/[^a-zA-Z0-9.\-]/g, "_");
+                    document.getElementById('fileName').value = `${timestamp}_${cleanFileName}`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('fileData').value = '';
+            }
+        });
+
+        /* -----------------------------------------------------
+           LOGIC: FORM SUBMIT KE GITHUB API
+           ----------------------------------------------------- */
+        document.getElementById('registration-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (document.getElementById('payment-proof').files.length > 0 && !document.getElementById('fileData').value) {
+                alert('Tunggu sebentar, file foto sedang diproses. Silahkan klik Kirim lagi dalam beberapa detik.');
+                return;
+            }
+
+            const selectedRadio = document.querySelector('input[name="schedule"]:checked');
+            if (selectedRadio && selectedRadio.hasAttribute('data-full')) {
+                alert('Maaf, kelas/jadwal yang Anda pilih sudah PENUH. Silakan pilih jadwal lain!');
+                return;
+            }
+
+            // Peringatan sebelum eksekusi (bisa dihapus nanti jika token sudah diisi)
+            if(GITHUB_TOKEN.includes('xxxx_token')) {
+                alert("Peringatan: Token GitHub belum diatur di dalam kode HTML. Pendaftaran tidak akan tersimpan.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit');
+            const originalContent = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mengunggah Foto...';
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            const formData = new FormData(e.target);
+            const dataForPayload = Object.fromEntries(formData.entries());
+            
+            try {
+                // 1. Upload Gambar ke folder /media/
+                const imagePath = `media/${dataForPayload.fileName}`;
+                const imagePayload = {
+                    message: `Upload bukti bayar: ${dataForPayload.fullname}`,
+                    content: dataForPayload.fileData,
+                    branch: GITHUB_BRANCH
+                };
+
+                const imgResponse = await fetch(`${GITHUB_API_BASE}/${imagePath}`, {
+                    method: 'PUT',
+                    headers: headers,
+                    body: JSON.stringify(imagePayload)
+                });
+
+                if (!imgResponse.ok) throw new Error("Gagal mengunggah gambar");
+
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan Data...';
+
+                // 2. Siapkan data JSON yang diformat khusus untuk Sveltia CMS
+                const d = new Date();
+                const tzOffset = d.getTimezoneOffset() * 60000;
+                const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0, -1); 
+                // Format: YYYY-MM-DDTHH:mm:ss
+                
+                const jsonContent = {
+                    timestamp: localISOTime.split('.')[0], // YYYY-MM-DDTHH:mm:ss
+                    fullname: dataForPayload.fullname,
+                    nickname: dataForPayload.nickname,
+                    gender: dataForPayload.gender,
+                    wa: dataForPayload.wa,
+                    address: dataForPayload.address,
+                    category: dataForPayload.category,
+                    schedule: dataForPayload.schedule,
+                    ability: dataForPayload.ability,
+                    payment_proof: `/${imagePath}` // Format path Sveltia untuk gambar
+                };
+
+                // Encode JSON ke Base64 (Syarat GitHub API)
+                // Menggunakan btoa butuh string UTF-8 yang bersih
+                const jsonBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(jsonContent, null, 2))));
+                
+                // Bikin nama file unik: YYYYMMDD-nama-orang.json
+                const datePrefix = localISOTime.split('T')[0].replace(/-/g, '');
+                const slugName = dataForPayload.fullname.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+                const jsonPath = `data/pendaftar/${datePrefix}-${slugName}.json`;
+
+                const jsonPayload = {
+                    message: `Pendaftar baru: ${dataForPayload.fullname}`,
+                    content: jsonBase64,
+                    branch: GITHUB_BRANCH
+                };
+
+                const jsonResponse = await fetch(`${GITHUB_API_BASE}/${jsonPath}`, {
+                    method: 'PUT',
+                    headers: headers,
+                    body: JSON.stringify(jsonPayload)
+                });
+
+                if (!jsonResponse.ok) throw new Error("Gagal menyimpan data pendaftar");
+
+                // --- SUKSES ---
+                const formSection = document.getElementById('registration-form');
+                const successView = document.getElementById('success-view');
+
+                formSection.style.display = 'none'; 
+                successView.classList.remove('hidden'); 
+                successView.classList.add('fade-in-up'); 
+
+                setTimeout(() => {
+                    successView.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+
+            } catch (err) {
+                console.error(err); 
+                alert('Terjadi kesalahan koneksi ke GitHub. Silahkan coba lagi.');
+                btn.innerHTML = originalContent; 
+                btn.disabled = false; 
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        });
+
+    </script>
+</body>
+</html>
