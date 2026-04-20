@@ -265,45 +265,25 @@
         };
 
         const DEFAULT_QUOTA = 15; 
-        let CATEGORY_CAPACITY = { "Baca Al-Quran": 15, "Bahasa Arab": 25, "Fiqih Ibadah": 25, "Tafsir & Tadabbur": 20 };
+        let CATEGORY_CAPACITY = {}; 
         
-        // DATA CADANGAN (FALLBACK) - Ini menyelamatkan jadwal agar tidak hilang jika Github pending/error!
-        const FALLBACK_CLASS_DATA = {
-            quran: { 
-                selectValue: "Baca Al-Quran", 
-                schedules: {
-                    'Laki-laki': [
-                        { type: 'Online', times: ['Senin & Rabu | 06.30 - 08.00', 'Senin & Rabu | 10.00 - 11.30', 'Senin & Rabu | 18.30 - 20.00', 'Selasa & Kamis | 06.30 - 08.00', 'Selasa & Kamis | 10.00 - 11.30', 'Selasa & Kamis | 18.30 - 20.00', 'Sabtu & Ahad | 06.30 - 08.00', 'Sabtu & Ahad | 10.00 - 11.30'] },
-                        { type: 'Offline', times: ['Senin & Rabu | 06.30 - 08.00', 'Senin & Rabu | 10.00 - 11.30', 'Senin & Rabu | 18.30 - 20.00', 'Selasa & Kamis | 06.30 - 08.00', 'Selasa & Kamis | 10.00 - 11.30', 'Selasa & Kamis | 18.30 - 20.00', 'Sabtu & Ahad | 06.30 - 08.00', 'Sabtu & Ahad | 10.00 - 11.30'] }
-                    ],
-                    'Perempuan': [
-                        { type: 'Online', times: ['Senin & Rabu | 08.30 - 10.00', 'Senin & Rabu | 13.00 - 14.30', 'Senin & Rabu | 16.00 - 17.30', 'Selasa & Kamis | 08.30 - 10.00', 'Selasa & Kamis | 13.00 - 14.30', 'Selasa & Kamis | 16.00 - 17.30', 'Sabtu & Ahad | 08.30 - 10.00', 'Sabtu & Ahad | 13.00 - 14.30'] },
-                        { type: 'Offline', times: ['Senin & Rabu | 08.30 - 10.00', 'Senin & Rabu | 13.00 - 14.30', 'Senin & Rabu | 16.00 - 17.30', 'Selasa & Kamis | 08.30 - 10.00', 'Selasa & Kamis | 13.00 - 14.30', 'Selasa & Kamis | 16.00 - 17.30', 'Sabtu & Ahad | 08.30 - 10.00', 'Sabtu & Ahad | 13.00 - 14.30'] }
-                    ]
-                }
-            },
-            arab: { selectValue: "Bahasa Arab", schedules: { 'Laki-laki': [], 'Perempuan': [] } },
-            fiqih: { selectValue: "Fiqih Ibadah", schedules: { 'Laki-laki': [], 'Perempuan': [] } },
-            tafsir: { selectValue: "Tafsir & Tadabbur", schedules: { 'Laki-laki': [], 'Perempuan': [] } }
-        };
-
-        // Inject Data Cadangan di awal
-        let classData = JSON.parse(JSON.stringify(FALLBACK_CLASS_DATA));
+        // Data Jadwal Murni dari Sveltia CMS (Kosong di awal, tanpa fallback data dummy)
+        let classData = {}; 
         
         let globalParticipants = [];
         let isDataLoaded = false;
 
         async function fetchGitHubData() {
-            // Mencegah error memblokir layar jika admin belum setting token. Tetap jalan pakai data Fallback.
+            // Peringatan jika token belum diisi
             if(GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
-                console.warn("Token belum diisi. Menggunakan jadwal bawaan (fallback).");
+                alert("PERHATIAN ADMIN:\nToken GitHub belum diisi di file index.html. Silakan masukkan sisa token Anda terlebih dahulu agar jadwal bisa muncul.");
                 isDataLoaded = true;
                 if (document.getElementById('kelas-select').value) updateScheduleOptions();
                 return;
             }
 
             try {
-                // Fetch Jadwal (Silently fail to Fallback if error occurs)
+                // Fetch Jadwal murni dari Sveltia
                 const jadwalRes = await fetch(`${GITHUB_API_BASE}/data/jadwal.json?ref=${GITHUB_BRANCH}&t=${new Date().getTime()}`, { headers });
                 
                 if (jadwalRes.ok) {
@@ -334,15 +314,19 @@
                                     });
                                 }
                             });
-                            // Timpa data fallback dengan data fresh dari Sveltia CMS
+                            // Masukkan data murni ke variabel classData
                             classData = newClassData;
                         }
                     } catch (parseErr) { 
-                        console.warn("Format jadwal Sveltia gagal dibaca, tetap pakai fallback.", parseErr); 
+                        console.error("Format jadwal Sveltia gagal dibaca.", parseErr); 
+                        alert("Gagal membaca format jadwal. Pastikan Anda mengisi format Sveltia dengan benar.");
                     }
-                } 
+                } else {
+                    const errStatus = await jadwalRes.json();
+                    alert("Gagal menarik jadwal dari GitHub (HTTP " + jadwalRes.status + ").\nPesan: " + errStatus.message + "\n\nPastikan file jadwal.json sudah ada di Sveltia CMS!");
+                }
 
-                // Fetch Pendaftar (Ini aman karena tidak akan memblokir load form)
+                // Fetch Pendaftar
                 const pendaftarRes = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}&t=${new Date().getTime()}`, { headers });
                 if (pendaftarRes.ok) {
                     const files = await pendaftarRes.json();
@@ -360,7 +344,7 @@
                 }
 
             } catch (err) {
-                console.warn("Gagal menghubungi GitHub, tetap pakai data lokal.", err);
+                console.warn("Gagal menghubungi GitHub.", err);
             } finally {
                 isDataLoaded = true;
                 if (document.getElementById('kelas-select').value) updateScheduleOptions();
@@ -496,7 +480,7 @@
                     container.innerHTML = '<p class="text-sm text-gray-500 italic p-3 bg-red-50 rounded-lg border border-red-100 text-center">Mohon maaf, jadwal untuk ' + selectedGender + ' belum tersedia di kelas ini.</p>';
                 }
             } else {
-                 container.innerHTML = '<p class="text-sm text-gray-500 italic p-3 bg-red-50 rounded-lg border border-red-100 text-center">Jadwal tidak ditemukan.</p>';
+                 container.innerHTML = '<p class="text-sm text-gray-500 italic p-3 bg-red-50 rounded-lg border border-red-100 text-center">Jadwal tidak ditemukan di database pusat. Pastikan jadwal sudah dibuat di Sveltia CMS.</p>';
             }
         }
 
