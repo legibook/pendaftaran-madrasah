@@ -266,19 +266,44 @@
 
         const DEFAULT_QUOTA = 15; 
         let CATEGORY_CAPACITY = { "Baca Al-Quran": 15, "Bahasa Arab": 25, "Fiqih Ibadah": 25, "Tafsir & Tadabbur": 20 };
-        let classData = { quran: { selectValue: "Baca Al-Quran", schedules: {} } };
+        
+        // DATA CADANGAN (FALLBACK) - Ini menyelamatkan jadwal agar tidak hilang jika Github pending/error!
+        const FALLBACK_CLASS_DATA = {
+            quran: { 
+                selectValue: "Baca Al-Quran", 
+                schedules: {
+                    'Laki-laki': [
+                        { type: 'Online', times: ['Senin & Rabu | 06.30 - 08.00', 'Senin & Rabu | 10.00 - 11.30', 'Senin & Rabu | 18.30 - 20.00', 'Selasa & Kamis | 06.30 - 08.00', 'Selasa & Kamis | 10.00 - 11.30', 'Selasa & Kamis | 18.30 - 20.00', 'Sabtu & Ahad | 06.30 - 08.00', 'Sabtu & Ahad | 10.00 - 11.30'] },
+                        { type: 'Offline', times: ['Senin & Rabu | 06.30 - 08.00', 'Senin & Rabu | 10.00 - 11.30', 'Senin & Rabu | 18.30 - 20.00', 'Selasa & Kamis | 06.30 - 08.00', 'Selasa & Kamis | 10.00 - 11.30', 'Selasa & Kamis | 18.30 - 20.00', 'Sabtu & Ahad | 06.30 - 08.00', 'Sabtu & Ahad | 10.00 - 11.30'] }
+                    ],
+                    'Perempuan': [
+                        { type: 'Online', times: ['Senin & Rabu | 08.30 - 10.00', 'Senin & Rabu | 13.00 - 14.30', 'Senin & Rabu | 16.00 - 17.30', 'Selasa & Kamis | 08.30 - 10.00', 'Selasa & Kamis | 13.00 - 14.30', 'Selasa & Kamis | 16.00 - 17.30', 'Sabtu & Ahad | 08.30 - 10.00', 'Sabtu & Ahad | 13.00 - 14.30'] },
+                        { type: 'Offline', times: ['Senin & Rabu | 08.30 - 10.00', 'Senin & Rabu | 13.00 - 14.30', 'Senin & Rabu | 16.00 - 17.30', 'Selasa & Kamis | 08.30 - 10.00', 'Selasa & Kamis | 13.00 - 14.30', 'Selasa & Kamis | 16.00 - 17.30', 'Sabtu & Ahad | 08.30 - 10.00', 'Sabtu & Ahad | 13.00 - 14.30'] }
+                    ]
+                }
+            },
+            arab: { selectValue: "Bahasa Arab", schedules: { 'Laki-laki': [], 'Perempuan': [] } },
+            fiqih: { selectValue: "Fiqih Ibadah", schedules: { 'Laki-laki': [], 'Perempuan': [] } },
+            tafsir: { selectValue: "Tafsir & Tadabbur", schedules: { 'Laki-laki': [], 'Perempuan': [] } }
+        };
+
+        // Inject Data Cadangan di awal
+        let classData = JSON.parse(JSON.stringify(FALLBACK_CLASS_DATA));
+        
         let globalParticipants = [];
         let isDataLoaded = false;
 
         async function fetchGitHubData() {
-            // Peringatan jika token belum diisi
+            // Mencegah error memblokir layar jika admin belum setting token. Tetap jalan pakai data Fallback.
             if(GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
-                alert("PERHATIAN ADMIN:\nToken GitHub belum diisi di file index.html. Silakan masukkan sisa token Anda terlebih dahulu agar jadwal bisa muncul.");
+                console.warn("Token belum diisi. Menggunakan jadwal bawaan (fallback).");
+                isDataLoaded = true;
+                if (document.getElementById('kelas-select').value) updateScheduleOptions();
                 return;
             }
 
             try {
-                // Fetch Jadwal (Tambahkan cache buster agar selalu ter-update)
+                // Fetch Jadwal (Silently fail to Fallback if error occurs)
                 const jadwalRes = await fetch(`${GITHUB_API_BASE}/data/jadwal.json?ref=${GITHUB_BRANCH}&t=${new Date().getTime()}`, { headers });
                 
                 if (jadwalRes.ok) {
@@ -291,35 +316,33 @@
                         const decodedJadwal = JSON.parse(new TextDecoder('utf-8').decode(bytes));
                         
                         if(decodedJadwal.kelas) {
-                            classData = {}; 
+                            let newClassData = {}; 
                             decodedJadwal.kelas.forEach((kls, index) => {
                                 const key = 'kelas_' + index;
-                                classData[key] = { selectValue: kls.nama, schedules: { "Laki-laki": [], "Perempuan": [] } };
+                                newClassData[key] = { selectValue: kls.nama, schedules: { "Laki-laki": [], "Perempuan": [] } };
                                 if (kls.kuota) CATEGORY_CAPACITY[kls.nama] = parseInt(kls.kuota);
                                 
                                 if(kls.schedules) {
                                     kls.schedules.forEach(sch => {
-                                        if(!classData[key].schedules[sch.gender]) classData[key].schedules[sch.gender] = [];
-                                        let typeGroup = classData[key].schedules[sch.gender].find(g => g.type === sch.type);
+                                        if(!newClassData[key].schedules[sch.gender]) newClassData[key].schedules[sch.gender] = [];
+                                        let typeGroup = newClassData[key].schedules[sch.gender].find(g => g.type === sch.type);
                                         if(!typeGroup) {
                                             typeGroup = { type: sch.type, times: [] };
-                                            classData[key].schedules[sch.gender].push(typeGroup);
+                                            newClassData[key].schedules[sch.gender].push(typeGroup);
                                         }
                                         if (sch.times) typeGroup.times.push(...sch.times.split(',').map(t => t.trim()));
                                     });
                                 }
                             });
+                            // Timpa data fallback dengan data fresh dari Sveltia CMS
+                            classData = newClassData;
                         }
                     } catch (parseErr) { 
-                        console.error(parseErr); 
-                        alert("Gagal membaca format jadwal. Pastikan Anda mengisi format Sveltia dengan benar.");
+                        console.warn("Format jadwal Sveltia gagal dibaca, tetap pakai fallback.", parseErr); 
                     }
-                } else {
-                    const errStatus = await jadwalRes.json();
-                    alert("Gagal menarik jadwal (HTTP " + jadwalRes.status + ").\nPesan: " + errStatus.message + "\n\nPastikan Token GitHub Anda masih aktif!");
-                }
+                } 
 
-                // Fetch Pendaftar
+                // Fetch Pendaftar (Ini aman karena tidak akan memblokir load form)
                 const pendaftarRes = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}&t=${new Date().getTime()}`, { headers });
                 if (pendaftarRes.ok) {
                     const files = await pendaftarRes.json();
@@ -337,7 +360,7 @@
                 }
 
             } catch (err) {
-                console.warn("Gagal memuat data dari GitHub.", err);
+                console.warn("Gagal menghubungi GitHub, tetap pakai data lokal.", err);
             } finally {
                 isDataLoaded = true;
                 if (document.getElementById('kelas-select').value) updateScheduleOptions();
@@ -576,7 +599,10 @@
                 const imagePath = `media/${dataForPayload.fileName}`;
                 const imagePayload = { message: `Upload bukti bayar: ${dataForPayload.fullname}`, content: dataForPayload.fileData, branch: GITHUB_BRANCH };
                 const imgResponse = await fetch(`${GITHUB_API_BASE}/${imagePath}`, { method: 'PUT', headers: headers, body: JSON.stringify(imagePayload) });
-                if (!imgResponse.ok) throw new Error("Gagal mengunggah gambar");
+                if (!imgResponse.ok) {
+                    const errData = await imgResponse.json();
+                    throw new Error(`Upload Gambar Gagal: ${errData.message}`);
+                }
 
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan Data...';
 
@@ -611,7 +637,10 @@
                 const jsonPayload = { message: `Pendaftar baru: ${dataForPayload.fullname}`, content: jsonBase64, branch: GITHUB_BRANCH };
                 const jsonResponse = await fetch(`${GITHUB_API_BASE}/${jsonPath}`, { method: 'PUT', headers: headers, body: JSON.stringify(jsonPayload) });
 
-                if (!jsonResponse.ok) throw new Error("Gagal menyimpan data pendaftar");
+                if (!jsonResponse.ok) {
+                    const errData = await jsonResponse.json();
+                    throw new Error(`Simpan Data JSON Gagal: ${errData.message}`);
+                }
 
                 // SUKSES
                 document.getElementById('registration-form').style.display = 'none'; 
@@ -622,7 +651,7 @@
 
             } catch (err) {
                 console.error(err); 
-                alert('Terjadi kesalahan koneksi ke GitHub. Silahkan coba lagi.');
+                alert('Terjadi kesalahan koneksi ke sistem.\n\nDetail: ' + err.message);
                 btn.innerHTML = originalContent; 
                 btn.disabled = false; 
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
