@@ -2,7 +2,7 @@
   "default_quota": 15,
   "kelas": [
     {
-      "nama": "Baca Al-Quran",
+      "nama": "Kelas Baca Al-Quran (Qara'na)",
       "kuota": null,
       "schedules": [
         {
