@@ -816,6 +816,25 @@
             }
         });
 
+/* -----------------------------------------------------
+           LOGIC: AUTO SELECT FROM URL PARAMETER
+           ----------------------------------------------------- */
+        window.addEventListener('DOMContentLoaded', (event) => {
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            const kategori = urlParams.get('kategori');
+
+            if (kategori) {
+                const selectElement = document.getElementById('kelas-select');
+                const optionExists = [...selectElement.options].some(o => o.value === kategori);
+
+                if (optionExists) {
+                    selectElement.value = kategori;
+                    updateScheduleOptions();
+                }
+            }
+        });
+      
     </script>
 </body>
 </html>
