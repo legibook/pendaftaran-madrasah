@@ -28,6 +28,26 @@
         {
           "gender": "Laki-laki",
           "type": "Online",
+          "times": "Selasa & Kamis | 06.30 - 08.00, Selasa & Kamis | 13.00 - 14.30, Selasa & Kamis | 18.30 - 20.00"
+        },
+        {
+          "gender": "Laki-laki",
+          "type": "Offline",
+          "times": "Selasa & Kamis | 06.30 - 08.00, Selasa & Kamis | 13.00 - 14.30, Selasa & Kamis | 18.30 - 20.00"
+        },
+        {
+          "gender": "Perempuan",
+          "type": "Online",
+          "times": "Selasa & Kamis | 08.30 - 10.00, Selasa & Kamis | 10.30 - 12.00, Selasa & Kamis | 16.00 - 17.30"
+        },
+        {
+          "gender": "Perempuan",
+          "type": "Offline",
+          "times": "Selasa & Kamis | 08.30 - 10.00, Selasa & Kamis | 10.30 - 12.00, Selasa & Kamis | 16.00 - 17.30"
+        },
+        {
+          "gender": "Laki-laki",
+          "type": "Online",
           "times": "Sabtu & Ahad | 06.30 - 08.00, Sabtu & Ahad | 13.00 - 14.30"
         },
         {
