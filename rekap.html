@@ -68,6 +68,33 @@
         <!-- Dashboard Content -->
         <div id="dashboard-container" class="hidden animate-[fadeIn_0.5s_ease-out]">
             
+            <!-- REVENUE TRACKER BANNER (BARU) -->
+            <div class="bg-gradient-to-r from-emerald-800 to-emerald-600 rounded-2xl shadow-lg mb-8 p-6 sm:p-8 text-white flex flex-col md:flex-row items-center justify-between relative overflow-hidden">
+                <!-- Ikon Latar Belakang -->
+                <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-8">
+                    <i class="fas fa-coins text-[150px]"></i>
+                </div>
+                
+                <!-- Total Keseluruhan -->
+                <div class="relative z-10 w-full md:w-auto mb-5 md:mb-0">
+                    <p class="text-emerald-200 text-xs sm:text-sm font-bold uppercase tracking-widest mb-1">Total Pemasukan Keseluruhan</p>
+                    <h2 id="rev-total" class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight">Rp 0</h2>
+                </div>
+                
+                <!-- Rincian -->
+                <div class="relative z-10 flex gap-4 sm:gap-6 w-full md:w-auto bg-black/20 p-4 rounded-xl backdrop-blur-sm">
+                    <div>
+                        <p class="text-emerald-200 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">Pendaftaran</p>
+                        <p id="rev-pendaftaran" class="text-base sm:text-xl font-bold">Rp 0</p>
+                    </div>
+                    <div class="w-px bg-white/20"></div>
+                    <div>
+                        <p class="text-emerald-200 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">SPP Bulanan</p>
+                        <p id="rev-spp" class="text-base sm:text-xl font-bold">Rp 0</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- TABS NAVIGASI -->
             <div class="flex border-b border-slate-200 mb-6 gap-2">
                 <button id="tab-btn-jadwal" onclick="switchTab('jadwal')" class="px-6 py-3 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 transition flex items-center gap-2">
@@ -78,7 +105,7 @@
                 </button>
             </div>
 
-            <!-- TAB 1: KONTEN REKAP JADWAL (EXISTING) -->
+            <!-- TAB 1: KONTEN REKAP JADWAL -->
             <div id="content-jadwal" class="animate-[fadeIn_0.3s_ease-out]">
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -128,7 +155,7 @@
                 </div>
             </div>
 
-            <!-- TAB 2: KONTEN STATUS PEMBAYARAN (DIPERBARUI) -->
+            <!-- TAB 2: KONTEN STATUS PEMBAYARAN -->
             <div id="content-pembayaran" class="hidden animate-[fadeIn_0.3s_ease-out]">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
                     
@@ -220,25 +247,32 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // ==========================================
-        // KONFIGURASI PENGATURAN BULAN & GITHUB
-        // ==========================================
         const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         
-        // HARUS SAMA DENGAN FILE KONFIRMASI.HTML
+        // ==========================================
+        // KONFIGURASI BULAN MULAI DAN BIAYA KELAS
+        // ==========================================
         const PENGATURAN_MULAI_KELAS = {
-            "Baca Al-Quran": { bulan: "Maret", tahun: 2026 },
-            "Bahasa Arab": { bulan: "April", tahun: 2026 },
-            "Fiqih Ibadah": { bulan: "Mei", tahun: 2026 },
-            "Tafsir & Tadabbur": { bulan: "Juni", tahun: 2026 },
+            "Baca Al-Quran": { bulan: "April", tahun: 2026 },
+            "Bahasa Arab": { bulan: "Mei", tahun: 2026 },
+            "Fiqih Sirah": { bulan: "Mei", tahun: 2026 },
             "DEFAULT": { bulan: "Januari", tahun: 2026 } 
+        };
+
+        const BIAYA_PENDAFTARAN = 15000;
+        const BIAYA_PROGRAM = {
+            "Baca Al-Quran": 65000,
+            "Bahasa Arab": 100000,
+            "Fiqih Ibadah": 125000,
+            "Tafsir & Tadabbur": 0, // Anda bisa ubah ini kapan saja
+            "DEFAULT": 0
         };
 
         const GITHUB_REPO_OWNER = 'legibook'; 
         const GITHUB_REPO_NAME = 'pendaftaran-madrasah'; 
         const GITHUB_BRANCH = 'main'; 
         
-        // PENTING: Masukkan sisa token Anda di sini, sama persis seperti di index.html!
+        // PENTING: Masukkan sisa token Anda di sini
         const tokenPart1 = 'github_pat_';
         const tokenPart2 = '11B4FAEOI0kovf0Hl167HL_iUEUX7fnlfgw9zHavXqRVXYeVfMOvrI7lwbhyU5PF5sQSF2I5DRvHMUd7bM'; 
         const GITHUB_TOKEN = tokenPart1 + tokenPart2;
@@ -252,7 +286,9 @@
         let CATEGORY_CAPACITY = {};
         const DEFAULT_QUOTA = 15;
 
-        // FUNGSI EVALUASI STATUS BAYAR (Kunci Otomatisasi Nunggak)
+        // ==========================================
+        // FUNGSI EVALUASI STATUS BAYAR (Kunci Otomatisasi)
+        // ==========================================
         function evaluatePaymentStatus(p) {
             const nowDate = new Date();
             const currentAbsMonth = (nowDate.getFullYear() * 12) + nowDate.getMonth();
@@ -280,11 +316,10 @@
                 }
             }
 
-            // Lunas jika bulan bayar terakhir LEBIH BESAR ATAU SAMA DENGAN bulan aktual ini
+            // Lunas jika bulan bayar terakhir >= bulan aktual
             if (lastPaidAbsMonth >= currentAbsMonth) {
                 return { isLunas: true, text: statusText };
             } else {
-                // Jika kurang, maka tagih bulan berikutnya dari pembayaran terakhir
                 const nextDueAbsMonth = lastPaidAbsMonth + 1;
                 const nextDueMonthIdx = nextDueAbsMonth % 12;
                 const nextDueYearNum = Math.floor(nextDueAbsMonth / 12);
@@ -293,7 +328,57 @@
         }
 
         // ==========================================
-        // 1. FETCH DATA DARI GITHUB (DENGAN API REAL-TIME)
+        // FUNGSI KALKULATOR PEMASUKAN (REVENUE TRACKER)
+        // ==========================================
+        function updateRevenueCards() {
+            // 1. Total Pendaftaran
+            let totalPendaftaran = globalParticipants.length * BIAYA_PENDAFTARAN;
+            let totalSPP = 0;
+
+            // 2. Total SPP Bulanan
+            globalParticipants.forEach(p => {
+                const statusText = p.status_spp || 'Belum Bayar';
+                if (statusText.toLowerCase() === 'belum bayar' || statusText.trim() === '') return;
+
+                const parts = statusText.split(' ');
+                if (parts.length >= 3) {
+                    const paidMonthStr = parts[1];
+                    const paidYearNum = parseInt(parts[2]);
+                    const paidMonthIdx = MONTHS.indexOf(paidMonthStr);
+
+                    if (paidMonthIdx !== -1 && !isNaN(paidYearNum)) {
+                        const userCategory = p.category || "DEFAULT";
+                        const classConfig = PENGATURAN_MULAI_KELAS[userCategory] || PENGATURAN_MULAI_KELAS["DEFAULT"];
+                        const startMonthIdx = MONTHS.indexOf(classConfig.bulan);
+                        const startYear = classConfig.tahun;
+
+                        const paidAbsolute = (paidYearNum * 12) + paidMonthIdx;
+                        const startAbsolute = (startYear * 12) + startMonthIdx;
+
+                        // Jumlah bulan yang dibayar (Mulai April, Lunas Juni -> 3 bulan dibayar)
+                        const monthsPaid = paidAbsolute - startAbsolute + 1;
+                        
+                        if (monthsPaid > 0) {
+                            const fee = BIAYA_PROGRAM[userCategory] !== undefined ? BIAYA_PROGRAM[userCategory] : BIAYA_PROGRAM["DEFAULT"];
+                            totalSPP += (monthsPaid * fee);
+                        }
+                    }
+                }
+            });
+
+            const grandTotal = totalPendaftaran + totalSPP;
+            
+            // Format Rupiah
+            const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
+            
+            document.getElementById('rev-pendaftaran').innerText = formatter.format(totalPendaftaran);
+            document.getElementById('rev-spp').innerText = formatter.format(totalSPP);
+            document.getElementById('rev-total').innerText = formatter.format(grandTotal);
+        }
+
+
+        // ==========================================
+        // 1. FETCH DATA DARI GITHUB
         // ==========================================
         async function fetchGitHubData() {
             if(GITHUB_TOKEN.includes('MASUKKAN_SISA')) {
@@ -333,15 +418,15 @@
                     }
                 }
 
-                // Fetch Pendaftar (Menggunakan API Endpoint Real-Time, BUKAN CDN download_url)
+                // Fetch Pendaftar (API Real-Time)
                 const pendaftarRes = await fetch(`${GITHUB_API_BASE}/data/pendaftar?ref=${GITHUB_BRANCH}${cacheBusterUrl}`, { headers });
                 globalParticipants = [];
                 
-                // Mencegah error jika folder kosong (tidak ada pendaftar sama sekali)
                 if (pendaftarRes.status === 404) {
                     indicator.innerHTML = '<i class="fas fa-check-circle"></i> Data Terkini (Kosong)';
                     indicator.className = 'flex items-center gap-2 text-sm font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200';
                     document.getElementById('dashboard-container').classList.remove('hidden');
+                    updateRevenueCards(); // Update angka RP menjadi 0
                     return; 
                 }
 
@@ -349,7 +434,6 @@
                     const files = await pendaftarRes.json();
                     const jsonFiles = files.filter(f => f.name.endsWith('.json'));
                     
-                    // PERBAIKAN: Menggunakan f.url (API Endpoint) agar terjamin 100% Real-Time
                     const fetchPromises = jsonFiles.map(f => {
                         const apiUrl = f.url.includes('?') ? `${f.url}&t=${new Date().getTime()}` : `${f.url}?t=${new Date().getTime()}`;
                         return fetch(apiUrl, { headers })
@@ -373,6 +457,9 @@
                 indicator.className = 'flex items-center gap-2 text-sm font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200';
                 
                 document.getElementById('dashboard-container').classList.remove('hidden');
+                
+                // Panggil kalkulasi uang sebelum render tabel
+                updateRevenueCards();
                 renderDashboard();
 
             } catch (err) {
@@ -431,7 +518,7 @@
             }
         }
 
-        // FUNGSI RENDER TABEL PEMBAYARAN (TAB 2)
+        // FUNGSI RENDER TABEL PEMBAYARAN
         function renderPaymentTable(participants) {
             const tbodyLunas = document.getElementById('tbody-lunas');
             const tbodyBelum = document.getElementById('tbody-belum');
@@ -442,11 +529,9 @@
             let countLunas = 0;
             let countBelum = 0;
 
-            // Urutkan abjad berdasarkan nama
             participants.sort((a, b) => a.fullname.localeCompare(b.fullname));
 
             participants.forEach(p => {
-                // Gunakan fungsi Evaluasi Pintar (Mempertimbangkan Bulan Aktual dan PENGATURAN_MULAI_KELAS)
                 const statusInfo = evaluatePaymentStatus(p);
                 const isLunas = statusInfo.isLunas;
                 const displayStatusText = statusInfo.text;
@@ -508,7 +593,7 @@
             document.getElementById('badge-count-belum').innerText = countBelum;
         }
 
-
+        // FUNGSI RENDER TABEL JADWAL
         function renderDynamicTable(gender, classData, participants, quota, containerId) {
             const container = document.getElementById(containerId);
             container.innerHTML = ''; 
@@ -517,21 +602,18 @@
             let uniqueDaysSet = new Set();
             let uniqueTimesSet = new Set();
 
-            // Ekstrak hari dan waktu dari data JSON Sveltia
             if(classData && classData.schedules) {
                 const genderSchedules = classData.schedules.filter(s => s.gender === gender);
                 genderSchedules.forEach(group => {
                     if(group.times) {
                         const times = group.times.split(',').map(t => t.trim());
                         times.forEach(t => {
-                            // Sveltia format: "Senin | 06.30 - 08.00" atau "Senin & Rabu | 06.30 - 08.00"
                             const parts = t.split('|').map(p => p.trim());
                             if(parts.length === 2) {
                                 const dayPart = parts[0];
                                 const timePart = parts[1];
                                 uniqueDaysSet.add(dayPart);
                                 uniqueTimesSet.add(timePart);
-                                // Format gabungan untuk validasi
                                 openedSchedules.push(`${group.type} | ${dayPart} | ${timePart}`);
                             }
                         });
@@ -540,15 +622,13 @@
             }
 
             const uniqueDays = Array.from(uniqueDaysSet);
-            const uniqueTimes = Array.from(uniqueTimesSet).sort(); // Sortir waktu dari pagi ke malam
+            const uniqueTimes = Array.from(uniqueTimesSet).sort(); 
 
-            // Jika belum ada jadwal sama sekali
             if (uniqueDays.length === 0 || uniqueTimes.length === 0) {
                 container.innerHTML = `<div class="p-8 text-center text-slate-500 italic">Belum ada jadwal yang diatur untuk kelompok ini.</div>`;
                 return;
             }
 
-            // --- BUILD THEAD (HEADER TABEL DINAMIS) ---
             let theadHTML = `
                 <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
                     <tr>
@@ -563,7 +643,6 @@
             });
             theadHTML += `</tr></thead>`;
 
-            // --- BUILD TBODY (BARIS TABEL DINAMIS) ---
             let tbodyHTML = `<tbody class="divide-y divide-slate-100">`;
             
             uniqueTimes.forEach((timeStr, index) => {
@@ -573,17 +652,17 @@
 
                 uniqueDays.forEach(day => {
                     ['Online', 'Offline'].forEach(type => {
-                        // Cek apakah ada jadwal dengan Hari, Tipe, dan Jam tersebut
                         const exactFormatConfig = `${type} | ${day} | ${timeStr}`;
                         const isOpened = openedSchedules.includes(exactFormatConfig);
 
                         if(!isOpened) {
-                            // Kolom Abu-abu (Tidak Ada Jadwal)
                             rowHTML += `<td class="p-4 text-center bg-slate-100 border-r border-slate-50"></td>`;
                         } else {
-                            // Sama persis format database formulir
                             const dbFormat = `${day} | ${type} | ${timeStr}`;
-                            const enrolled = participants.filter(p => p.schedule === dbFormat);
+                            
+                            // PERBAIKAN BUG TABEL: Memfilter peserta berdasarkan jadwal DAN jenis kelaminnya (agar tidak tumpang tindih)
+                            const enrolled = participants.filter(p => p.schedule === dbFormat && p.gender === gender);
+                            
                             const count = enrolled.length;
                             const isFull = count >= quota;
                             
@@ -598,7 +677,6 @@
                                 textClass += "text-emerald-700";
                             }
                             
-                            // Hindari error tanda kutip (jika ada) saat onClick
                             const escapedDbFormat = dbFormat.replace(/'/g, "\\'");
                             const escapedGender = gender.replace(/'/g, "\\'");
 
@@ -616,7 +694,6 @@
             });
             tbodyHTML += `</tbody>`;
 
-            // Satukan dan Tampilkan
             container.innerHTML = `
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm whitespace-nowrap">
@@ -628,19 +705,17 @@
         }
 
         // ==========================================
-        // 3. POP-UP DETAIL PESERTA (DIPERBARUI)
+        // 3. POP-UP DETAIL PESERTA
         // ==========================================
         function showDetailModal(scheduleStr, gender) {
             const selectedClass = document.getElementById('filter-kelas').value;
             
-            // Filter peserta spesifik untuk cell yang diklik
             const enrolled = globalParticipants.filter(p => 
                 p.category === selectedClass && 
                 p.gender === gender && 
                 p.schedule === scheduleStr
             );
 
-            // Update Header Modal
             document.getElementById('modal-schedule-info').innerText = scheduleStr;
             const badgeGender = document.getElementById('modal-gender-badge');
             if(gender === 'Laki-laki') {
@@ -653,18 +728,15 @@
             
             document.getElementById('modal-count-badge').innerText = `${enrolled.length} Pendaftar`;
 
-            // List Nama
             const ul = document.getElementById('modal-names-list');
             ul.innerHTML = '';
 
             if(enrolled.length === 0) {
                 ul.innerHTML = '<li class="p-8 text-center text-slate-400 italic font-medium"><i class="fas fa-folder-open mb-3 text-2xl block text-slate-300"></i>Belum ada pendaftar di jadwal ini</li>';
             } else {
-                // Urutkan berdasarkan waktu daftar
                 enrolled.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
 
                 enrolled.forEach((p, idx) => {
-                    // Cek Status Pembayaran Pintar untuk Label di Dalam Pop-Up
                     const statusInfo = evaluatePaymentStatus(p);
                     const isLunas = statusInfo.isLunas;
                     const displayStatusText = statusInfo.text;
@@ -691,7 +763,6 @@
                 });
             }
 
-            // Tampilkan Modal
             document.getElementById('detail-modal').classList.add('modal-open');
             document.getElementById('detail-modal-content').classList.add('modal-content-open');
         }
