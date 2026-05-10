@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Rekap Peserta - Madrasah Ilmi</title>
+    <title>Dashboard Rekap Peserta - Kelas Ngaji</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,10 +19,69 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Animasi Login */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.5s ease-out forwards; }
     </style>
 </head>
-<body class="text-slate-700 min-h-screen flex flex-col">
+<body class="text-slate-700 min-h-screen flex flex-col relative">
 
+    <!-- ==============================================
+         LAYAR LOGIN (OVERLAY)
+         ============================================== -->
+    <div id="login-overlay" class="fixed inset-0 z-[100] bg-slate-100 flex flex-col items-center justify-center p-4">
+        
+        <div class="text-center mb-8 animate-fade-up" style="animation-delay: 0.1s; opacity: 0;">
+            <div class="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-white text-3xl shadow-lg mx-auto mb-4">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800">Admin Area</h1>
+            <p class="text-slate-500 mt-1 text-sm">Dashboard Rekapitulasi Kelas Ngaji</p>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-sm p-6 sm:p-8 animate-fade-up" style="animation-delay: 0.2s; opacity: 0;">
+            
+            <div id="login-error" class="hidden mb-5 bg-rose-50 text-rose-600 text-sm p-3 rounded-lg border border-rose-100 flex items-center gap-2">
+                <i class="fas fa-exclamation-circle shrink-0"></i>
+                <span id="login-error-text">Username atau password salah!</span>
+            </div>
+
+            <form id="login-form" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Username</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <input type="text" id="login-username" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition" placeholder="Masukkan username">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <input type="password" id="login-password" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-login" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/30 flex justify-center items-center mt-2">
+                    <span id="login-btn-text">Masuk ke Dashboard</span>
+                    <i class="fas fa-arrow-right ml-2" id="login-btn-icon"></i>
+                </button>
+            </form>
+        </div>
+        
+        <p class="text-xs text-slate-400 mt-8 animate-fade-up" style="animation-delay: 0.3s; opacity: 0;">&copy; 2024 Kelas Ngaji. Secured Connection.</p>
+    </div>
+
+
+    <!-- ==============================================
+         DASHBOARD UTAMA (Di Bawah Overlay)
+         ============================================== -->
     <!-- Header -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -32,13 +91,18 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-slate-800 text-lg leading-tight">Rekapitulasi Pendaftar</h1>
-                    <p class="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Dashboard Admin Madrasah Ilmi</p>
+                    <p class="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Dashboard Admin Kelas Ngaji</p>
                 </div>
             </div>
-            <div class="flex items-center gap-4">
-                <a href="admin/index.html" class="text-sm font-medium text-slate-500 hover:text-emerald-600 transition flex items-center gap-2">
-                    <i class="fas fa-cog"></i> Sveltia CMS
+            <div class="flex items-center gap-4 sm:gap-6">
+                <a href="admin/index.html" class="text-sm font-medium text-slate-500 hover:text-emerald-600 transition flex items-center gap-1.5">
+                    <i class="fas fa-cog"></i> <span class="hidden sm:inline">Sveltia CMS</span>
                 </a>
+                <div class="w-px h-5 bg-slate-200"></div>
+                <!-- Tombol Logout Baru -->
+                <button onclick="logoutDashboard()" class="text-sm font-medium text-rose-500 hover:text-rose-700 transition flex items-center gap-1.5" title="Keluar dari Dashboard">
+                    <i class="fas fa-sign-out-alt"></i> <span class="hidden sm:inline">Keluar</span>
+                </button>
             </div>
         </div>
     </header>
@@ -57,7 +121,7 @@
             
             <div class="flex items-center gap-3">
                 <div id="status-indicator" class="flex items-center gap-2 text-sm font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
-                    <i class="fas fa-circle-notch fa-spin"></i> Sinkronisasi Data...
+                    <i class="fas fa-circle-notch fa-spin"></i> Menunggu Akses...
                 </div>
                 <button onclick="fetchGitHubData()" class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-sm font-medium transition shadow-sm flex items-center gap-2">
                     <i class="fas fa-sync-alt"></i> Refresh
@@ -247,6 +311,11 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
+        // ==========================================
+        // URL GOOGLE SCRIPT UNTUK LOGIN DASHBOARD
+        // ==========================================
+        const GAS_LOGIN_URL = 'https://script.google.com/macros/s/AKfycbzkqZP8W9rjUnZszasDNhPkF8Wp5pEQH1gi_UHExuM909rgszlh0IYaHxjd0WjL2uiEwA/exec';
+
         const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         
         // ==========================================
@@ -285,6 +354,86 @@
         let rawJadwalData = [];
         let CATEGORY_CAPACITY = {};
         const DEFAULT_QUOTA = 15;
+
+        // ==========================================
+        // SISTEM LOGIN AJAX (BARU)
+        // ==========================================
+        
+        // Cek Login Saat Halaman Dimuat
+        window.addEventListener('DOMContentLoaded', () => {
+            if(localStorage.getItem('madrasah_rekap_loggedin') === 'true') {
+                // Jika sudah pernah login (tersimpan di browser), tutup layar login dan tarik data GitHub
+                document.getElementById('login-overlay').style.display = 'none';
+                fetchGitHubData();
+            } else {
+                // Jika belum, biarkan layar login terbuka (tidak menarik data GitHub)
+                document.getElementById('login-overlay').style.display = 'flex';
+                document.getElementById('status-indicator').innerHTML = '<i class="fas fa-lock"></i> Menunggu Akses...';
+            }
+        });
+
+        // Proses Tombol Keluar (Logout)
+        function logoutDashboard() {
+            localStorage.removeItem('madrasah_rekap_loggedin');
+            window.location.reload(); // Segarkan halaman untuk kembali ke layar login
+        }
+
+        // Proses Form Login disubmit
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const user = document.getElementById('login-username').value;
+            const pass = document.getElementById('login-password').value;
+            const btn = document.getElementById('btn-login');
+            const errBox = document.getElementById('login-error');
+            const errText = document.getElementById('login-error-text');
+
+            // Set tombol ke mode Loading
+            btn.disabled = true;
+            document.getElementById('login-btn-text').innerText = 'Memverifikasi...';
+            document.getElementById('login-btn-icon').className = 'fas fa-circle-notch fa-spin ml-2';
+            errBox.classList.add('hidden');
+
+            try {
+                // Tembak URL Google Script dengan metode GET menggunakan Query Parameter
+                const fetchUrl = `${GAS_LOGIN_URL}?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
+                
+                const response = await fetch(fetchUrl);
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    // BERHASIL: Simpan memori login ke Browser
+                    localStorage.setItem('madrasah_rekap_loggedin', 'true');
+                    
+                    // Mainkan animasi sembunyikan layar login
+                    document.getElementById('login-overlay').classList.add('opacity-0', 'pointer-events-none', 'transition-opacity', 'duration-500');
+                    setTimeout(() => {
+                        document.getElementById('login-overlay').style.display = 'none';
+                    }, 500);
+
+                    // Panggil data GitHub sekarang!
+                    fetchGitHubData();
+
+                } else {
+                    // GAGAL
+                    errText.innerText = "Username atau password salah!";
+                    errBox.classList.remove('hidden');
+                    resetLoginButton(btn);
+                }
+            } catch (error) {
+                // Error koneksi internet atau server Google
+                errText.innerText = "Terjadi kesalahan jaringan ke Server Login.";
+                errBox.classList.remove('hidden');
+                resetLoginButton(btn);
+            }
+        });
+
+        function resetLoginButton(btn) {
+            btn.disabled = false;
+            document.getElementById('login-btn-text').innerText = 'Masuk ke Dashboard';
+            document.getElementById('login-btn-icon').className = 'fas fa-arrow-right ml-2';
+        }
+
 
         // ==========================================
         // FUNGSI EVALUASI STATUS BAYAR (Kunci Otomatisasi)
@@ -772,8 +921,8 @@
             document.getElementById('detail-modal-content').classList.remove('modal-content-open');
         }
 
-        // Start Fetching on Load
-        window.addEventListener('DOMContentLoaded', fetchGitHubData);
+        // PENARIKAN DATA KINI DIKENDALIKAN OLEH SISTEM LOGIN DI ATAS!
+        // window.addEventListener('DOMContentLoaded', fetchGitHubData); (Dihapus karena memanggil di event login)
 
     </script>
 </body>
