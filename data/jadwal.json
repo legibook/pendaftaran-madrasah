@@ -100,12 +100,12 @@
         {
           "gender": "Laki-laki",
           "type": "Online",
-          "times": "Senin | 12.15 - 15.00, Senin | 20.00 - 21.30, Kamis | 10.15 - 11.30, Kamis | 20.00 - 21.30"
+          "times": "Senin | 12.15 - 13.15, Senin | 20.00 - 21.30, Kamis | 10.15 - 11.30, Kamis | 20.00 - 21.30"
         },
         {
           "gender": "Perempuan",
           "type": "Online",
-          "times": "Senin | 12.15 - 15.00, Senin | 20.00 - 21.30, Kamis | 10.15 - 11.30, Kamis | 20.00 - 21.30"
+          "times": "Senin | 12.15 - 13.15, Senin | 20.00 - 21.30, Kamis | 10.15 - 11.30, Kamis | 20.00 - 21.30"
         }
       ]
     }
